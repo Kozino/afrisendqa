@@ -1,0 +1,34 @@
+{
+  "name": "afrisend-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AfriSend remittance API \u2014 QCB-aligned compliance core, double-entry ledger, Flutterwave v3 + Ria payout rails, admin operations console.",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "migrate": "node scripts/migrate.js",
+    "create-admin": "node scripts/create-admin.js",
+    "import-sanctions": "node scripts/import-sanctions.js",
+    "rotate-signing-key": "node scripts/rotate-signing-key.js",
+    "smoke": "node scripts/smoke-test.js",
+    "test": "node --test tests/",
+    "provision:corridors": "node scripts/provision-corridors.js",
+    "housekeeping": "node scripts/housekeeping.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0",
+    "zod": "^3.23.8"
+  }
+}

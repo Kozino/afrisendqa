@@ -1,0 +1,85 @@
+{
+  "expo": {
+    "name": "AfriSend",
+    "slug": "afrisend",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "afrisend",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#083B2D"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "qa.afrisend.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "AfriSend uses the camera so you can scan your Qatar ID and take a live selfie for identity verification, as required by Qatar Central Bank rules.",
+        "NSPhotoLibraryUsageDescription": "AfriSend needs access to your photos only if you choose to upload an identity document image.",
+        "NSFaceIDUsageDescription": "Use Face ID to sign in and confirm transfers quickly and securely.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false
+        },
+        "CFBundleLocalizations": ["en", "fr", "ar", "sw"]
+      }
+    },
+    "android": {
+      "package": "qa.afrisend.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#083B2D"
+      },
+      "permissions": [
+        "CAMERA",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "VIBRATE",
+        "INTERNET"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_SMS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_BACKGROUND_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/icon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow AfriSend to use the camera to scan your Qatar ID and take a liveness selfie."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#084C38"
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": "https://afrisend-api.onrender.com/api/v1",
+      "eas": {
+        "projectId": "REPLACE_WITH_YOUR_EAS_PROJECT_ID"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/REPLACE_WITH_YOUR_EAS_PROJECT_ID"
+    }
+  }
+}

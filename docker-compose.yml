@@ -1,0 +1,86 @@
+# =============================================================================
+# AfriSend — local development stack
+#
+#   cp backend/.env.example backend/.env      # fill in the secrets
+#   docker compose up -d db
+#   docker compose run --rm migrate
+#   docker compose exec api node backend/scripts/create-admin.js \
+#        --email you@company.qa --name "You" --role SUPER_ADMIN
+#   docker compose exec api node backend/scripts/provision-corridors.js --rate NGN=421.06 ...
+#   docker compose up api                     # API + console on http://localhost:4000/admin
+#
+# The `api` service is built from backend/Dockerfile, so this stack runs the
+# exact same image Render deploys.
+# =============================================================================
+name: afrisend
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: afrisend
+      POSTGRES_PASSWORD: afrisend_local_dev
+      POSTGRES_DB: afrisend
+    ports:
+      - "5432:5432"
+    volumes:
+      - afrisend-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U afrisend -d afrisend"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      LOG_LEVEL: debug
+      DATABASE_URL: postgres://afrisend:afrisend_local_dev@db:5432/afrisend
+      DATABASE_SSL: disable
+      # Local-only values. Replace before pointing this at anything real.
+      JWT_SECRET: ${JWT_SECRET:-local_dev_jwt_secret_change_me_0123456789abcdef}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-local_dev_refresh_secret_change_me_0123456789}
+      PII_ENCRYPTION_KEY: ${PII_ENCRYPTION_KEY:-00000000000000000000000000000000000000000000000000000000000000aa}
+      PII_HMAC_KEY: ${PII_HMAC_KEY:-00000000000000000000000000000000000000000000000000000000000000bb}
+      FLW_SECRET_KEY: ${FLW_SECRET_KEY:-FLWSECK_TEST-localsandboxkeyforintegrationonly}
+      FLW_PUBLIC_KEY: ${FLW_PUBLIC_KEY:-FLWPUBK_TEST-localsandboxkeyforintegrationonly}
+      FLW_WEBHOOK_HASH: ${FLW_WEBHOOK_HASH:-local-webhook-secret-hash-2026}
+      PUBLIC_BASE_URL: http://localhost:4000
+      CORS_ORIGINS: http://localhost:4000
+      ADMIN_CONSOLE_ENABLED: "true"
+      DEV_OTP_CODE: ${DEV_OTP_CODE:-}
+    ports:
+      - "4000:4000"
+
+  # One-shot schema migration runner: `docker compose run --rm migrate`
+  migrate:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    profiles: ["tools"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://afrisend:afrisend_local_dev@db:5432/afrisend
+      DATABASE_SSL: disable
+      JWT_SECRET: local_dev_jwt_secret_change_me_0123456789abcdef
+      JWT_REFRESH_SECRET: local_dev_refresh_secret_change_me_0123456789
+      PII_ENCRYPTION_KEY: 00000000000000000000000000000000000000000000000000000000000000aa
+      PII_HMAC_KEY: 00000000000000000000000000000000000000000000000000000000000000bb
+      FLW_SECRET_KEY: FLWSECK_TEST-localsandboxkeyforintegrationonly
+      FLW_WEBHOOK_HASH: local-webhook-secret-hash-2026
+    working_dir: /app/backend
+    command: ["node", "scripts/migrate.js"]
+
+volumes:
+  afrisend-pgdata:
