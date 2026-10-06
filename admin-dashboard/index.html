@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<title>AfriSend Ops — Operations &amp; Compliance Console</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23084C38'/><path d='M8 22 16 8l8 14h-4.2L16 15.4 12.2 22z' fill='%23A7F3D0'/></svg>" />
+<style>
+  :root{
+    --emerald:#084C38; --teal:#083B2D; --mint:#A7F3D0; --mint-soft:#E6F6ED;
+    --gold:#D97706; --gold-soft:#FEF3C7; --ink:#0B1C15; --muted:#5F7A6E;
+    --card:#FFFFFF; --base:#F8FAFC; --line:#E2ECE7;
+    --danger:#B91C1C; --danger-soft:#FEF2F2; --warn:#B45309; --ok:#047857;
+    --shadow:0 1px 2px rgba(11,28,21,.06), 0 8px 24px rgba(11,28,21,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--base); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; font-size:14px;
+  }
+  a{color:var(--emerald)}
+  code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12.5px}
+  .app{display:grid; grid-template-columns:246px 1fr; min-height:100vh}
+  @media (max-width:1080px){ .app{grid-template-columns:1fr} .sidebar{position:static !important; height:auto !important} .nav{display:flex; overflow-x:auto; gap:6px} .nav button{white-space:nowrap} }
+
+  /* ---------------- sidebar ---------------- */
+  .sidebar{
+    background:linear-gradient(180deg,#083B2D,#084C38 60%,#06251A); color:#fff; padding:20px 14px;
+    position:sticky; top:0; height:100vh; display:flex; flex-direction:column; gap:16px;
+  }
+  .brand{display:flex; align-items:center; gap:11px; padding:0 6px}
+  .mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(140deg,var(--mint),#5EEAD4);display:grid;place-items:center;color:#06251A;font-weight:800}
+  .brand b{display:block; letter-spacing:-.01em}
+  .brand span{font-size:11px; color:#A7D9C6}
+  .nav{display:grid; gap:3px; margin-top:6px; overflow-y:auto}
+  .nav button{
+    display:flex; align-items:center; gap:10px; width:100%; padding:9.5px 11px; border:0; border-radius:10px;
+    background:transparent; color:#CFE9DE; font-size:13.5px; font-weight:600; cursor:pointer; text-align:left; transition:.14s;
+  }
+  .nav button:hover{background:rgba(167,243,208,.10); color:#fff}
+  .nav button.active{background:rgba(167,243,208,.18); color:#fff; box-shadow:inset 3px 0 0 var(--mint)}
+  .nav .badge{margin-left:auto; background:var(--gold); color:#3A2200; font-size:10.5px; font-weight:800; padding:2px 7px; border-radius:999px}
+  .nav .badge.red{background:#F87171; color:#450A0A}
+  .sidebar .foot{margin-top:auto; font-size:10.5px; color:#8FC0AE; line-height:1.5; padding:0 6px}
+
+  /* ---------------- topbar ---------------- */
+  .main{display:flex; flex-direction:column; min-width:0}
+  .topbar{
+    background:#fff; border-bottom:1px solid var(--line); padding:13px 22px; display:flex; align-items:center; gap:14px;
+    position:sticky; top:0; z-index:30;
+  }
+  .topbar h1{font-size:17px; margin:0; letter-spacing:-.02em}
+  .topbar .sub{font-size:12px; color:var(--muted); margin-top:2px}
+  .spacer{flex:1}
+  .pill{display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:999px; font-size:11.5px; font-weight:700}
+  .pill.live{background:var(--mint-soft); color:#065F46}
+  .pill.down{background:var(--danger-soft); color:var(--danger)}
+  .pill.role{background:var(--gold-soft); color:#7C3E06}
+  .dot{width:7px;height:7px;border-radius:50%;background:currentColor; opacity:.85}
+  .ghost{border:1px solid var(--line); background:#fff; padding:8px 12px; border-radius:10px; font-size:12.5px; font-weight:650; cursor:pointer; color:#2C4A3E}
+  .ghost:hover{border-color:var(--emerald); color:var(--emerald)}
+  .primary{border:0; background:linear-gradient(120deg,var(--emerald),#0A6B4E); color:#fff; padding:9px 14px; border-radius:10px; font-size:12.5px; font-weight:700; cursor:pointer}
+  .primary:hover{box-shadow:0 8px 18px rgba(8,76,56,.25)}
+  .primary:disabled,.ghost:disabled{opacity:.5; cursor:not-allowed; box-shadow:none}
+  .danger-btn{border:0; background:#B91C1C; color:#fff; padding:9px 13px; border-radius:10px; font-size:12.5px; font-weight:700; cursor:pointer}
+
+  /* ---------------- content ---------------- */
+  .content{padding:22px; display:grid; gap:16px; align-content:start}
+  .grid{display:grid; gap:14px}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:15px; box-shadow:var(--shadow); padding:16px 17px}
+  .card h3{margin:0 0 3px; font-size:14px; letter-spacing:-.01em}
+  .card .hint{color:var(--muted); font-size:12px; margin-bottom:12px}
+  .card-head{display:flex; align-items:flex-start; gap:10px; margin-bottom:10px}
+  .kpi{font-size:24px; font-weight:800; letter-spacing:-.03em; margin:2px 0 2px}
+  .kpi.sm{font-size:19px}
+  .kpi-label{font-size:11.5px; text-transform:uppercase; letter-spacing:.10em; color:var(--muted); font-weight:700}
+  .delta{font-size:12px; color:var(--muted)}
+  .tiny{font-size:12px; color:var(--muted)}
+  .money{font-variant-numeric:tabular-nums}
+
+  table{width:100%; border-collapse:collapse; font-size:13px}
+  th{text-align:left; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); padding:9px 10px; border-bottom:1px solid var(--line); white-space:nowrap}
+  td{padding:10px; border-bottom:1px solid #F1F6F3; vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:#FBFDFC}
+  .table-wrap{overflow:auto; max-height:60vh; border:1px solid var(--line); border-radius:12px; background:#fff}
+  .right{text-align:right}
+
+  .tag{display:inline-block; padding:3px 8px; border-radius:999px; font-size:11px; font-weight:700; white-space:nowrap}
+  .t-ok{background:var(--mint-soft); color:#065F46}
+  .t-warn{background:var(--gold-soft); color:#7C3E06}
+  .t-bad{background:var(--danger-soft); color:var(--danger)}
+  .t-info{background:#EFF6FF; color:#1D4ED8}
+  .t-mute{background:#F1F5F9; color:#475569}
+  .t-high{background:#FEE2E2;color:#991B1B}
+  .t-critical{background:#450A0A;color:#FEE2E2}
+
+  .empty{padding:26px 18px; text-align:center; color:var(--muted); font-size:13px; line-height:1.6}
+  .empty code{background:#F1F5F9; padding:2px 6px; border-radius:6px; display:inline-block; margin-top:6px}
+
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px}
+  input[type=text],input[type=number],input[type=date],select,textarea{
+    padding:8.5px 11px; border:1px solid var(--line); border-radius:10px; font-size:13px; background:var(--base); color:var(--ink); font-family:inherit;
+  }
+  input:focus,select:focus,textarea:focus{outline:none; border-color:var(--emerald); background:#fff; box-shadow:0 0 0 3px rgba(8,76,56,.09)}
+
+  .modal-back{position:fixed; inset:0; background:rgba(6,29,21,.55); backdrop-filter:blur(2px); display:none; align-items:center; justify-content:center; padding:20px; z-index:80}
+  .modal-back.open{display:flex}
+  .modal{background:#fff; border-radius:16px; width:min(880px,100%); max-height:88vh; overflow:auto; box-shadow:0 30px 70px rgba(0,0,0,.35)}
+  .modal header{display:flex; align-items:center; gap:10px; padding:16px 18px; border-bottom:1px solid var(--line); position:sticky; top:0; background:#fff; z-index:2}
+  .modal header h3{margin:0; font-size:15px}
+  .modal .body{padding:18px}
+  .modal footer{display:flex; gap:8px; justify-content:flex-end; padding:14px 18px; border-top:1px solid var(--line); position:sticky; bottom:0; background:#fff}
+  .close{margin-left:auto; border:0; background:#F1F5F9; width:30px; height:30px; border-radius:9px; cursor:pointer; font-size:15px; color:#475569}
+
+  .toast{position:fixed; right:20px; bottom:20px; display:grid; gap:8px; z-index:90}
+  .toast div{background:#0B1C15; color:#E6F6ED; padding:11px 14px; border-radius:11px; font-size:13px; box-shadow:var(--shadow); max-width:380px}
+  .toast div.err{background:#7F1D1D; color:#FEE2E2}
+  .toast div.ok{background:#065F46; color:#D1FAE5}
+
+  .bars{display:grid; gap:8px}
+  .bar{display:grid; grid-template-columns:96px 1fr 84px; gap:10px; align-items:center; font-size:12.5px}
+  .track{height:8px; background:#EEF4F1; border-radius:999px; overflow:hidden}
+  .fill{height:100%; background:linear-gradient(90deg,var(--emerald),#10B981); border-radius:999px}
+  .fill.gold{background:linear-gradient(90deg,#D97706,#F59E0B)}
+  .fill.red{background:linear-gradient(90deg,#B91C1C,#F87171)}
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  @media (max-width:760px){ .split{grid-template-columns:1fr} }
+  .kv{display:grid; grid-template-columns:150px 1fr; gap:7px 12px; font-size:13px}
+  .kv dt{color:var(--muted); font-size:12px}
+  .kv dd{margin:0; font-weight:600}
+  .timeline{display:grid; gap:8px; font-size:12.5px}
+  .timeline div{display:grid; grid-template-columns:150px 150px 1fr; gap:8px; padding-bottom:7px; border-bottom:1px dashed var(--line)}
+</style>
+</head>
+<body>
+<div class="app" id="app" style="display:none">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">A</div>
+      <div><b>AfriSend Ops</b><span>QCB compliance console</span></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="foot">
+      <div id="railStatus">Connecting…</div>
+      <div style="margin-top:6px">Audit records are immutable · 10-year retention</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="pageTitle">Overview</h1>
+        <div class="sub" id="pageSub">Platform health</div>
+      </div>
+      <div class="spacer"></div>
+      <span class="pill live" id="streamPill"><span class="dot"></span> live</span>
+      <span class="pill role" id="rolePill">—</span>
+      <button class="ghost" id="refreshBtn">Refresh</button>
+      <button class="ghost" id="mfaBtn">Security</button>
+      <button class="ghost" id="signOutBtn">Sign out</button>
+    </header>
+    <main class="content" id="view"></main>
+  </div>
+</div>
+
+<div class="modal-back" id="modalBack"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toasts"></div>
+
+<script>
+/* ===========================================================================
+   AfriSend operations console
+   - every value comes from the API; nothing is mocked in this file
+   - the role and permissions come from the JWT, not from a dropdown
+   =========================================================================== */
+(function () {
+'use strict';
+
+var API = '/api/v1';
+var state = {
+  operator: null,
+  tab: 'overview',
+  data: {},
+  pending: {},
+  eventSource: null,
+  lastEventAt: 0
+};
+
+/* ---------------------------------------------------------------- helpers */
+function $(id) { return document.getElementById(id); }
+function esc(value) {
+  if (value === null || value === undefined) return '—';
+  return String(value).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function moneyFromMinor(minor, currency) {
+  if (minor === null || minor === undefined) return '—';
+  var e = ({ UGX: 0, TZS: 0, RWF: 0, XAF: 0, XOF: 0 })[currency] || 2;
+  var negative = minor < 0;
+  var digits = String(Math.abs(Math.trunc(minor))).padStart(e + 1, '0');
+  var whole = digits.slice(0, digits.length - e) || '0';
+  var frac = e > 0 ? '.' + digits.slice(digits.length - e) : '';
+  var grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return (negative ? '-' : '') + grouped + frac + ' ' + (currency || '');
+}
+function timeAgo(iso) {
+  if (!iso) return '—';
+  var seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (seconds < 60) return seconds + 's ago';
+  if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+  if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+  return Math.floor(seconds / 86400) + 'd ago';
+}
+function clock(iso) { return iso ? new Date(iso).toLocaleString() : '—'; }
+function can(permission) { return (state.operator && state.operator.permissions || []).indexOf(permission) !== -1; }
+
+function toast(message, kind) {
+  var node = document.createElement('div');
+  node.className = kind || '';
+  node.textContent = message;
+  $('toasts').appendChild(node);
+  setTimeout(function () { node.remove(); }, kind === 'err' ? 8000 : 4500);
+}
+
+function statusTag(status) {
+  var map = {
+    PAID: 't-ok', PROCESSING: 't-info', INITIATED: 't-info', AML_HOLD: 't-warn',
+    SCREENING_FAILED: 't-bad', FAILED: 't-bad', REFUNDED: 't-mute', CANCELLED: 't-mute',
+    APPROVED: 't-ok', PENDING: 't-warn', REJECTED: 't-bad', IN_REVIEW: 't-info', EXPIRED: 't-mute',
+    ACTIVE: 't-ok', SUSPENDED: 't-bad', PENDING_KYC: 't-warn', CLOSED: 't-mute',
+    OPEN: 't-warn', ESCALATED: 't-high', SAR_FILED: 't-critical', CLOSED_NO_ACTION: 't-mute', CLOSED_ACTIONED: 't-mute'
+  };
+  return '<span class="tag ' + (map[status] || 't-mute') + '">' + esc(String(status).replace(/_/g, ' ')) + '</span>';
+}
+function riskTag(risk) {
+  var map = { LOW: 't-ok', MEDIUM: 't-warn', HIGH: 't-high', CRITICAL: 't-critical', UNSCREENED: 't-mute' };
+  return '<span class="tag ' + (map[risk] || 't-mute') + '">' + esc(risk) + '</span>';
+}
+
+/* ------------------------------------------------------------------- auth */
+function persistTokens(payload) {
+  if (payload.accessToken) localStorage.setItem('afrisend_access', payload.accessToken);
+  if (payload.refreshToken) localStorage.setItem('afrisend_refresh', payload.refreshToken);
+}
+function signOut(message) {
+  var refresh = localStorage.getItem('afrisend_refresh');
+  if (refresh) {
+    fetch(API + '/auth/admin/logout', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: refresh })
+    }).catch(function () {});
+  }
+  localStorage.removeItem('afrisend_access');
+  localStorage.removeItem('afrisend_refresh');
+  localStorage.removeItem('afrisend_operator');
+  window.location.replace('login.html');
+  if (message) toast(message);
+}
+function refreshSession() {
+  var refresh = localStorage.getItem('afrisend_refresh');
+  if (!refresh) return Promise.reject(new Error('no refresh token'));
+  return fetch(API + '/auth/admin/refresh', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken: refresh })
+  }).then(function (response) {
+    if (!response.ok) throw new Error('refresh failed');
+    return response.json();
+  }).then(function (payload) { persistTokens(payload); return payload.accessToken; });
+}
+
+function api(path, options) {
+  options = options || {};
+  var attempt = options._retry !== true;
+  return fetch(API + path, {
+    method: options.method || 'GET',
+    headers: Object.assign({
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + (localStorage.getItem('afrisend_access') || '')
+    }, options.headers || {}),
+    body: options.body ? JSON.stringify(options.body) : undefined
+  }).then(function (response) {
+    if (response.status === 401 && attempt) {
+      return refreshSession().then(function () { return api(path, Object.assign({}, options, { _retry: true })); });
+    }
+    return response.json().catch(function () { return {}; }).then(function (payload) {
+      if (!response.ok) {
+        var message = (payload.error && payload.error.message) || ('Request failed (' + response.status + ')');
+        var details = payload.error && payload.error.details;
+        if (Array.isArray(details)) message += ': ' + details.map(function (d) { return d.field + ' ' + d.message; }).join(', ');
+        throw new Error(message);
+      }
+      return payload;
+    });
+  });
+}
+
+/* ---------------------------------------------------------------- navigation */
+/**
+ * Navigation. Each tab declares the permission it needs; a tab the operator's
+ * role cannot read is not shown at all, rather than shown and then failing with
+ * a 403 when it is opened. Permissions come from the server (the JWT), never
+ * from anything in this file.
+ */
+var TABS = [
+  { id: 'overview', label: 'Overview', sub: 'Live platform health', icon: '◧', permission: 'overview:read' },
+  { id: 'transfers', label: 'Transfers', sub: 'Screening, holds and payouts', icon: '↗', badge: 'amlHolds', permission: 'transfers:read' },
+  { id: 'aml', label: 'AML cases', sub: 'Investigations and filings', icon: '⚑', badge: 'openAmlCases', permission: 'aml:review' },
+  { id: 'makerchecker', label: 'Maker-checker', sub: 'Four-eyes approval queue', icon: '⚖', badge: 'makerCheckerPending', permission: 'overview:read' },
+  { id: 'kyc', label: 'KYC queue', sub: 'Identity verification', icon: '☑', badge: 'kycPending', permission: 'kyc:read' },
+  { id: 'ledger', label: 'Ledger', sub: 'Double-entry journals, float and reconciliation', icon: '≡', permission: 'ledger:read' },
+  { id: 'treasury', label: 'Treasury', sub: 'FX pricing and liquidity', icon: '◈', permission: 'fx:read' },
+  { id: 'customers', label: 'Customers', sub: 'Accounts and limits', icon: '☺', permission: 'customers:read' },
+  { id: 'compliance', label: 'Compliance', sub: 'QCB filings, screening, webhooks', icon: '§', permission: 'overview:read' },
+  { id: 'audit', label: 'Audit trail', sub: 'Immutable operator history', icon: '⌘', permission: 'audit:read' }
+];
+
+/** Tabs this operator's role may open. */
+function visibleTabs() {
+  return TABS.filter(function (tab) { return can(tab.permission); });
+}
+
+function renderNav() {
+  var counts = state.data.counts || {};
+  $('nav').innerHTML = visibleTabs().map(function (tab) {
+    var badge = '';
+    if (tab.badge && counts[tab.badge] > 0) {
+      badge = '<span class="badge' + (tab.id === 'transfers' ? ' red' : '') + '">' + counts[tab.badge] + '</span>';
+    }
+    return '<button data-tab="' + tab.id + '" class="' + (state.tab === tab.id ? 'active' : '') + '">'
+      + '<span style="opacity:.85">' + tab.icon + '</span>' + esc(tab.label) + badge + '</button>';
+  }).join('');
+  Array.prototype.forEach.call($('nav').querySelectorAll('button'), function (button) {
+    button.onclick = function () { go(button.getAttribute('data-tab')); };
+  });
+}
+
+var RENDERERS = {};
+
+function go(tab) {
+  state.tab = tab;
+  var meta = TABS.filter(function (t) { return t.id === tab; })[0] || {};
+  $('pageTitle').textContent = meta.label || tab;
+  $('pageSub').textContent = meta.sub || '';
+  renderNav();
+  var view = $('view');
+  if (state.pending[tab]) {
+    view.innerHTML = '<div class="card"><div class="empty">Loading ' + esc(meta.label || tab) + '…</div></div>';
+    return;
+  }
+  if (!RENDERERS[tab]) {
+    view.innerHTML = '<div class="card"><div class="empty">This view is not available to your role.</div></div>';
+    return;
+  }
+  state.pending[tab] = true;
+  RENDERERS[tab](view).catch(function (err) {
+    view.innerHTML = '<div class="card"><div class="empty">' + esc(err.message) + '</div></div>';
+  }).finally(function () { state.pending[tab] = false; });
+}
+
+/* ============================== OVERVIEW =============================== */
+RENDERERS.overview = function (view) {
+  return api('/admin/overview').then(function (data) {
+    state.data.counts = {
+      amlHolds: data.queues.amlHolds,
+      openAmlCases: data.queues.openAmlCases,
+      makerCheckerPending: data.queues.makerCheckerPending,
+      kycPending: data.queues.kycPending
+    };
+    renderNav();
+
+    var kpi = function (label, value, sub, tone) {
+      return '<div class="card"><div class="kpi-label">' + esc(label) + '</div>'
+        + '<div class="kpi' + (tone ? ' ' + tone : '') + '">' + value + '</div>'
+        + '<div class="delta">' + (sub || '') + '</div></div>';
+    };
+
+    var corridorRows = (data.corridors || []).map(function (c) {
+      var spread = ((c.baseRate - c.retailRate) / c.baseRate * 100);
+      return '<tr><td>' + esc(c.flag || '') + ' ' + esc(c.country) + '<div class="tiny mono">' + esc(c.currency) + '</div></td>'
+        + '<td class="right money">' + c.baseRate.toFixed(4) + '</td>'
+        + '<td class="right money">' + c.retailRate.toFixed(4) + '</td>'
+        + '<td class="right">' + spread.toFixed(2) + '%</td>'
+        + '<td>' + (c.active ? '<span class="tag t-ok">open</span>' : '<span class="tag t-mute">closed</span>') + '</td>'
+        + '<td class="tiny">' + timeAgo(c.updatedAt) + '</td></tr>';
+    }).join('');
+
+    var floatRows = (data.solvency.floatPositions || []).map(function (f) {
+      return '<tr><td class="mono">' + esc(f.account_code) + '</td><td>' + esc(f.currency) + '</td>'
+        + '<td class="right money">' + esc(moneyFromMinor(f.balance_minor, f.currency)) + '</td>'
+        + '<td class="right money tiny">' + esc(moneyFromMinor(f.qar_value_minor, 'QAR')) + '</td></tr>';
+    }).join('');
+
+    var webhookRows = (data.webhookHealth || []).map(function (w) {
+      return '<tr><td>' + esc(w.provider) + '</td><td class="right">' + w.total + '</td>'
+        + '<td class="right">' + w.processed + '</td>'
+        + '<td class="right">' + (w.failed ? '<span class="tag t-bad">' + w.failed + '</span>' : '0') + '</td>'
+        + '<td class="right">' + (w.rejected_signatures ? '<span class="tag t-high">' + w.rejected_signatures + '</span>' : '0') + '</td>'
+        + '<td class="tiny">' + timeAgo(w.latest) + '</td></tr>';
+    }).join('') || '<tr><td colspan="6" class="empty">No webhook traffic in the last 7 days.</td></tr>';
+
+    var caseRows = (data.amlCaseBreakdown || []).map(function (c) {
+      return '<tr><td class="mono">' + esc(c.trigger_rule) + '</td><td>' + riskTag(c.severity) + '</td><td class="right">' + c.cases + '</td></tr>';
+    }).join('') || '<tr><td colspan="3" class="empty">No open cases.</td></tr>';
+
+    var auditRows = (data.recentAudit || []).slice(0, 8).map(function (log) {
+      return '<tr><td class="tiny">' + clock(log.created_at) + '</td><td class="mono">' + esc(log.action) + '</td>'
+        + '<td class="tiny">' + esc(log.actor_email || log.actor_type) + '</td></tr>';
+    }).join('');
+
+    var screening = data.screeningCoverage || [];
+    var screeningHtml = screening.length
+      ? screening.map(function (s) {
+          return '<div class="bar"><span class="mono">' + esc(s.list_source) + '</span>'
+            + '<span class="track"><span class="fill" style="width:' + Math.min(100, s.entries / 100) + '%"></span></span>'
+            + '<span class="right tiny">' + s.entries.toLocaleString() + ' names</span></div>';
+        }).join('')
+      : '<div class="empty">No sanctions list imported yet. Transfers above the review threshold stay on hold until a list is loaded — run <code>npm run import-sanctions</code>.</div>';
+
+    view.innerHTML =
+      '<div class="grid g4">'
+      + kpi('Volume · 24h', esc(data.last24h.volume), data.last24h.transferCount + ' transfers · ' + data.last24h.paid + ' paid')
+      + kpi('Fee revenue · 24h', esc(moneyFromMinor(data.last24h.feeRevenueMinor, 'QAR')), 'FX spread ' + esc(moneyFromMinor(data.last24h.fxSpreadRevenueMinor, 'QAR')))
+      + kpi('AML holds', String(data.queues.amlHolds), esc(moneyFromMinor(data.queues.amlHeldValueMinor, 'QAR')) + ' quarantined')
+      + kpi('Pending approvals', String(data.queues.makerCheckerPending), 'four-eyes queue')
+      + '</div>'
+
+      + '<div class="grid g2">'
+      + '<section class="card"><div class="card-head"><div><h3>Corridor pricing</h3><div class="hint">Live rates held in the database. Changes go through maker-checker.</div></div></div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Corridor</th><th class="right">Base</th><th class="right">Retail</th><th class="right">Spread</th><th>Status</th><th>Updated</th></tr></thead>'
+      + '<tbody>' + (corridorRows || '<tr><td colspan="6" class="empty">No corridors provisioned. Run <code>npm run provision:corridors</code>.</td></tr>') + '</tbody></table></div></section>'
+
+      + '<section class="card"><h3>Settlement float</h3><div class="hint">Balance of each payout pool, from the ledger' + (data.solvency.booksBalanced ? ' · <span class="tag t-ok">books balanced</span>' : ' · <span class="tag t-bad">ledger integrity issue</span>') + '</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Account</th><th>Ccy</th><th class="right">Balance</th><th class="right">QAR value</th></tr></thead><tbody>'
+      + (floatRows || '<tr><td colspan="4" class="empty">No float funded yet.</td></tr>') + '</tbody></table></div></section>'
+      + '</div>'
+
+      + '<div class="grid g3">'
+      + '<section class="card"><h3>Sanctions &amp; PEP coverage</h3><div class="hint">Lists loaded into the screening engine</div>' + screeningHtml + '</section>'
+      + '<section class="card"><h3>Open AML cases</h3><div class="hint">By trigger rule and severity</div><div class="table-wrap"><table><tbody>' + caseRows + '</tbody></table></div></section>'
+      + '<section class="card"><h3>Provider webhooks</h3><div class="hint">Signature-verified events, last 7 days</div><div class="table-wrap"><table><thead><tr><th>Rail</th><th class="right">Total</th><th class="right">OK</th><th class="right">Failed</th><th class="right">Rejected</th><th>Latest</th></tr></thead><tbody>' + webhookRows + '</tbody></table></div></section>'
+      + '</div>'
+
+      + '<section class="card"><h3>Latest audit entries</h3><div class="hint">Append-only · ' + (data.realtime.connected) + ' console stream(s) connected</div>'
+      + '<div class="table-wrap"><table><tbody>' + (auditRows || '<tr><td class="empty">No activity yet.</td></tr>') + '</tbody></table></div></section>';
+  });
+};
+
+/* ============================== TRANSFERS ============================== */
+RENDERERS.transfers = function (view) {
+  var filters = state.data.transferFilters || { status: '', risk: '', search: '' };
+  var query = '/admin/transfers?limit=200'
+    + (filters.status ? '&status=' + encodeURIComponent(filters.status) : '')
+    + (filters.risk ? '&risk=' + encodeURIComponent(filters.risk) : '')
+    + (filters.search ? '&search=' + encodeURIComponent(filters.search) : '');
+
+  return api(query).then(function (data) {
+    var rows = (data.transfers || []).map(function (t) {
+      var actions = '<button class="ghost" data-open="' + esc(t.reference) + '">Inspect</button>';
+      if (t.status === 'AML_HOLD' && can('aml:release')) {
+        actions += ' <button class="primary" data-release="' + esc(t.reference) + '">Release…</button>'
+          + ' <button class="danger-btn" data-block="' + esc(t.reference) + '">Block…</button>';
+      }
+      return '<tr>'
+        + '<td><div class="mono">' + esc(t.reference) + '</div><div class="tiny">' + timeAgo(t.initiatedAt) + '</div></td>'
+        + '<td>' + esc(t.customer.name) + '<div class="tiny">' + esc(t.customer.reference) + ' · Tier ' + t.customer.kycTier + '</div></td>'
+        + '<td>' + esc(t.beneficiary.name) + '<div class="tiny">' + esc(t.beneficiary.institution || t.channel) + ' ' + esc(t.beneficiary.accountMasked || '') + '</div></td>'
+        + '<td class="right money">' + esc(t.totalDebit) + '</td>'
+        + '<td class="right money">' + esc(t.payoutAmount) + '</td>'
+        + '<td>' + statusTag(t.status) + '</td>'
+        + '<td>' + riskTag(t.riskLevel) + '</td>'
+        + '<td class="tiny">' + esc(t.provider || '—') + (t.providerReference ? '<div class="mono">' + esc(t.providerReference) + '</div>' : '') + '</td>'
+        + '<td>' + actions + '</td></tr>';
+    }).join('');
+
+    view.innerHTML =
+      '<section class="card"><div class="toolbar">'
+      + '<input type="text" id="txSearch" placeholder="Search reference, customer or beneficiary" value="' + esc(filters.search) + '" style="min-width:280px" />'
+      + '<select id="txStatus"><option value="">All statuses</option>'
+      + ['INITIATED', 'PROCESSING', 'PAID', 'AML_HOLD', 'FAILED', 'REFUNDED', 'CANCELLED'].map(function (s) {
+          return '<option value="' + s + '"' + (filters.status === s ? ' selected' : '') + '>' + s.replace(/_/g, ' ') + '</option>';
+        }).join('') + '</select>'
+      + '<select id="txRisk"><option value="">All risk levels</option>'
+      + ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map(function (r) {
+          return '<option value="' + r + '"' + (filters.risk === r ? ' selected' : '') + '>' + r + '</option>';
+        }).join('') + '</select>'
+      + '<button class="ghost" id="txApply">Apply</button>'
+      + '<button class="ghost" id="txExport">Export CSV</button>'
+      + '<div class="spacer" style="flex:1"></div><span class="tiny">' + (data.transfers || []).length + ' row(s)</span>'
+      + '</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Reference</th><th>Customer</th><th>Beneficiary</th><th class="right">Debited</th><th class="right">Payout</th><th>Status</th><th>Risk</th><th>Provider</th><th></th></tr></thead><tbody>'
+      + (rows || '<tr><td colspan="9" class="empty">No transfers match these filters yet.</td></tr>')
+      + '</tbody></table></div></section>';
+
+    $('txApply').onclick = function () {
+      state.data.transferFilters = { status: $('txStatus').value, risk: $('txRisk').value, search: $('txSearch').value.trim() };
+      go('transfers');
+    };
+    $('txExport').onclick = function () { exportCsv('afrisend-transfers', data.transfers); };
+    Array.prototype.forEach.call(view.querySelectorAll('[data-open]'), function (button) {
+      button.onclick = function () { openTransfer(button.getAttribute('data-open')); };
+    });
+    Array.prototype.forEach.call(view.querySelectorAll('[data-release]'), function (button) {
+      button.onclick = function () { raiseAmlRelease(button.getAttribute('data-release')); };
+    });
+    Array.prototype.forEach.call(view.querySelectorAll('[data-block]'), function (button) {
+      button.onclick = function () { blockTransfer(button.getAttribute('data-block')); };
+    });
+  });
+};
+
+function openTransfer(reference) {
+  openModal('Transfer ' + reference, '<div class="empty">Loading…</div>');
+  api('/admin/transfers/' + encodeURIComponent(reference)).then(function (data) {
+    var t = data.transfer;
+    var journals = (data.journals || []).map(function (j) {
+      return '<tr><td class="mono">' + esc(j.reference) + '</td><td>' + esc(j.journal_type) + '</td>'
+        + '<td class="right money">' + esc(moneyFromMinor(j.total_qar_minor, 'QAR')) + '</td>'
+        + '<td><button class="ghost" data-journal="' + esc(j.id) + '">Legs</button></td></tr>';
+    }).join('') || '<tr><td colspan="4" class="empty">No journal posted for this transfer.</td></tr>';
+
+    var screening = (data.screening || []).map(function (s) {
+      return '<tr><td>' + esc(s.subject_type) + '</td><td>' + esc(s.query_name) + '</td>'
+        + '<td>' + statusTag(s.outcome === 'CLEAR' ? 'APPROVED' : s.outcome === 'HIT' ? 'REJECTED' : 'PENDING') + ' ' + esc(s.outcome) + '</td>'
+        + '<td class="right">' + (s.best_score !== null ? Number(s.best_score).toFixed(3) : '—') + '</td>'
+        + '<td class="tiny">' + esc((s.lists_checked || []).join(', ') || 'none') + '</td>'
+        + '<td class="tiny">' + timeAgo(s.screened_at) + '</td></tr>';
+    }).join('') || '<tr><td colspan="6" class="empty">No screening record.</td></tr>';
+
+    var timeline = (t.timeline || []).map(function (e) {
+      return '<div><span class="tiny">' + clock(e.at) + '</span><span>' + esc(e.actor || '') + ' ' + esc(e.from || '·') + ' → ' + esc(e.to) + '</span><span class="tiny">' + esc(e.reason || '') + '</span></div>';
+    }).join('') || '<div class="tiny">No state changes recorded.</div>';
+
+    var riskAssessment = t.riskAssessment
+      ? '<section class="card" style="margin-top:14px"><h3>Why this was held</h3>'
+        + '<div class="hint">Case ' + esc(t.riskAssessment.caseReference) + ' · ' + esc(t.riskAssessment.caseStatus)
+        + (t.riskAssessment.resolutionNote ? ' · ' + esc(t.riskAssessment.resolutionNote) : '') + '</div>'
+        + '<div class="table-wrap"><table><thead><tr><th>Rule</th><th>Effect</th><th>Reason</th></tr></thead><tbody>'
+        + (t.riskAssessment.rules || []).map(function (rule) {
+            var tone = rule.effect === 'BLOCK' ? 't-bad' : rule.effect === 'HOLD' ? 't-warn' : 't-mute';
+            return '<tr><td class="mono">' + esc(rule.rule) + '</td>'
+              + '<td><span class="tag ' + tone + '">' + esc(rule.effect) + '</span></td>'
+              + '<td>' + esc(rule.detail) + '</td></tr>';
+          }).join('')
+        + '</tbody></table></div></section>'
+      : '';
+
+    setModalBody('<div class="grid g2">'
+      + '<section class="card"><h3>Transfer</h3><div class="hint">' + statusTag(t.status) + ' ' + riskTag(t.riskLevel) + '</div>'
+      + '<dl class="kv">'
+      + '<dt>Reference</dt><dd class="mono">' + esc(t.reference) + '</dd>'
+      + '<dt>Customer</dt><dd>' + esc(t.beneficiary ? '' : '') + esc(t.customer ? t.customer.name : '') + '</dd>'
+      + '<dt>Beneficiary</dt><dd>' + esc(t.beneficiary ? t.beneficiary.name : '') + ' · ' + esc(t.beneficiary ? t.beneficiary.institution : '') + '</dd>'
+      + '<dt>Debited</dt><dd class="money">' + esc(t.totals.totalDebit) + ' <span class="tiny">(fee ' + esc(t.totals.fee) + ')</span></dd>'
+      + '<dt>Payout</dt><dd class="money">' + esc(t.totals.theyReceive) + '</dd>'
+      + '<dt>Rate</dt><dd class="money">' + esc(t.totals.rate) + '</dd>'
+      + '<dt>Purpose</dt><dd>' + esc(t.purposeCode || 'not declared') + '</dd>'
+      + '<dt>Provider</dt><dd>' + esc(t.provider || '—') + ' ' + esc(t.providerReference || '') + '</dd>'
+      + '<dt>Initiated</dt><dd>' + clock(t.initiatedAt) + '</dd>'
+      + (t.paidAt ? '<dt>Paid</dt><dd>' + clock(t.paidAt) + '</dd>' : '')
+      + (t.amlHoldReason ? '<dt>Hold reason</dt><dd style="color:#92400E">' + esc(t.amlHoldReason) + '</dd>' : '')
+      + (t.failureReason ? '<dt>Failure</dt><dd style="color:#B91C1C">' + esc(t.failureReason) + '</dd>' : '')
+      + '</dl></section>'
+      + '<section class="card"><h3>State timeline</h3><div class="timeline">' + timeline + '</div></section>'
+      + '</div>'
+      + '<section class="card" style="margin-top:14px"><h3>Screening</h3><div class="hint">Sanctions / PEP checks recorded for this case</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Subject</th><th>Name</th><th>Outcome</th><th class="right">Score</th><th>Lists</th><th>When</th></tr></thead><tbody>' + screening + '</tbody></table></div></section>'
+      + riskAssessment
+      + '<section class="card" style="margin-top:14px"><h3>Ledger journals</h3><div class="hint">Every journal balances; entries are append-only</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Journal</th><th>Type</th><th class="right">QAR value</th><th></th></tr></thead><tbody>' + journals + '</tbody></table></div></section>');
+
+    Array.prototype.forEach.call($('modal').querySelectorAll('[data-journal]'), function (button) {
+      button.onclick = function () { openJournal(button.getAttribute('data-journal')); };
+    });
+  }).catch(function (err) { setModalBody('<div class="empty">' + esc(err.message) + '</div>'); });
+}
+
+function openJournal(journalId) {
+  openModal('Journal legs', '<div class="empty">Loading…</div>');
+  api('/admin/ledger/journals/' + journalId).then(function (data) {
+    var debits = 0, credits = 0;
+    var rows = data.entries.map(function (e) {
+      if (e.direction === 'DEBIT') debits += e.amountMinor; else credits += e.amountMinor;
+      return '<tr><td>' + e.direction + '</td><td class="mono">' + esc(e.accountCode) + '<div class="tiny">' + esc(e.accountName) + '</div></td>'
+        + '<td class="right money">' + esc(e.amount) + '</td>'
+        + '<td class="tiny">' + esc(e.memo || '') + '</td></tr>';
+    }).join('');
+    setModalBody('<div class="table-wrap"><table><thead><tr><th>Dr/Cr</th><th>Account</th><th class="right">Amount</th><th>Memo</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+      + '<div class="tiny" style="margin-top:10px">Debits and credits are stored per currency; cross-currency journals are validated in translated QAR terms. Entries can never be edited — corrections are posted as reversing journals.</div>');
+  });
+}
+
+function raiseAmlRelease(reference) {
+  openModal('Release AML hold — ' + reference,
+    '<div class="empty" style="text-align:left">Releasing funds requires a <b>second operator</b> (four-eyes). Your request will be queued with your name on it, and the release only executes once a different operator approves it.</div>'
+    + '<label class="tiny" style="display:block;margin-top:12px">Reason for release (required, min 10 characters)</label>'
+    + '<textarea id="releaseNote" rows="4" style="width:100%" placeholder="e.g. Source of funds evidenced by salary certificate; beneficiary name verified against bank record."></textarea>');
+  setModalFooter('<button class="ghost" data-close="1">Cancel</button><button class="primary" id="releaseSubmit">Submit for approval</button>');
+  $('releaseSubmit').onclick = function () {
+    var note = $('releaseNote').value.trim();
+    if (note.length < 10) { toast('Please write at least 10 characters of justification.', 'err'); return; }
+    $('releaseSubmit').disabled = true;
+    api('/admin/transfers/' + encodeURIComponent(reference) + '/aml-action', {
+      method: 'POST', body: { action: 'RELEASE', note: note }
+    }).then(function (result) {
+      toast('Queued for a second operator: ' + result.request.reference, 'ok');
+      closeModal();
+      go('makerchecker');
+    }).catch(function (err) { toast(err.message, 'err'); $('releaseSubmit').disabled = false; });
+  };
+}
+
+function blockTransfer(reference) {
+  openModal('Block transfer — ' + reference,
+    '<div class="empty" style="text-align:left">Blocking returns the funds to the customer wallet and closes the AML case as <b>actioned</b>. This is recorded at CRITICAL severity in the audit trail.</div>'
+    + '<label class="tiny" style="display:block;margin-top:12px">Investigation note (required)</label>'
+    + '<textarea id="blockNote" rows="4" style="width:100%" placeholder="Reason, evidence reviewed and decision."></textarea>');
+  setModalFooter('<button class="ghost" data-close="1">Cancel</button><button class="danger-btn" id="blockSubmit">Block and refund</button>');
+  $('blockSubmit').onclick = function () {
+    var note = $('blockNote').value.trim();
+    if (note.length < 10) { toast('Please record at least 10 characters of justification.', 'err'); return; }
+    $('blockSubmit').disabled = true;
+    api('/admin/transfers/' + encodeURIComponent(reference) + '/aml-action', {
+      method: 'POST', body: { action: 'BLOCK', note: note }
+    }).then(function () { toast('Transfer blocked and refunded.', 'ok'); closeModal(); go('transfers'); })
+      .catch(function (err) { toast(err.message, 'err'); $('blockSubmit').disabled = false; });
+  };
+}
+
+/* ================================ AML ================================== */
+RENDERERS.aml = function (view) {
+  return api('/admin/aml-cases?status=ALL').then(function (data) {
+    var rows = (data.cases || []).map(function (c) {
+      var actions = '';
+      if (can('aml:review') && ['OPEN', 'ESCALATED'].indexOf(c.status) !== -1) {
+        actions = '<button class="ghost" data-case="' + esc(c.reference) + '">Update…</button>';
+      }
+      return '<tr><td class="mono">' + esc(c.reference) + '<div class="tiny">' + timeAgo(c.opened_at) + '</div></td>'
+        + '<td>' + esc(c.customer_name) + '<div class="tiny">' + esc(c.customer_ref) + '</div></td>'
+        + '<td class="mono tiny">' + esc(c.trigger_rule) + '</td>'
+        + '<td>' + riskTag(c.severity) + '</td>'
+        + '<td>' + statusTag(c.status) + '</td>'
+        + '<td class="mono tiny">' + esc(c.transfer_reference || '—') + '</td>'
+        + '<td class="tiny">' + esc(c.resolution_note || '—') + '</td>'
+        + '<td>' + actions + '</td></tr>';
+    }).join('');
+
+    view.innerHTML = '<section class="card"><h3>AML cases</h3>'
+      + '<div class="hint">Opened automatically by the risk engine (thresholds, structuring, velocity, sanctions) or manually by an analyst.</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Case</th><th>Customer</th><th>Trigger</th><th>Severity</th><th>Status</th><th>Transfer</th><th>Resolution</th><th></th></tr></thead>'
+      + '<tbody>' + (rows || '<tr><td colspan="8" class="empty">No cases open. Holding thresholds are configured in <code>compliance_settings</code>.</td></tr>') + '</tbody></table></div></section>';
+
+    Array.prototype.forEach.call(view.querySelectorAll('[data-case]'), function (button) {
+      button.onclick = function () { updateCase(button.getAttribute('data-case')); };
+    });
+  });
+};
+
+function updateCase(reference) {
+  openModal('Update case ' + reference,
+    '<label class="tiny">New status</label>'
+    + '<select id="caseStatus" style="width:100%;margin-bottom:12px">'
+    + ['OPEN', 'ESCALATED', 'SAR_FILED', 'CLOSED_NO_ACTION', 'CLOSED_ACTIONED'].map(function (s) {
+        return '<option value="' + s + '">' + s.replace(/_/g, ' ') + '</option>';
+      }).join('') + '</select>'
+    + '<label class="tiny">Investigation note (min 10 chars)</label>'
+    + '<textarea id="caseNote" rows="4" style="width:100%"></textarea>'
+    + '<div class="tiny" style="margin-top:8px">Filing an SAR records the case as reported to the QCB Financial Information Unit and cannot be undone.</div>');
+  setModalFooter('<button class="ghost" data-close="1">Cancel</button><button class="primary" id="caseSubmit">Save</button>');
+  $('caseSubmit').onclick = function () {
+    api('/admin/aml-cases/' + encodeURIComponent(reference) + '/action', {
+      method: 'POST', body: { status: $('caseStatus').value, note: $('caseNote').value.trim() }
+    }).then(function () { toast('Case updated.', 'ok'); closeModal(); go('aml'); })
+      .catch(function (err) { toast(err.message, 'err'); });
+  };
+}
+
+/* =========================== MAKER-CHECKER ============================= */
+RENDERERS.makerchecker = function (view) {
+  return api('/admin/maker-checker?status=ALL&limit=200').then(function (data) {
+    var rows = (data.requests || []).map(function (r) {
+      var decide = '';
+      if (r.status === 'PENDING') {
+        if (r.isOwnRequest) {
+          decide = '<span class="tiny">your request — a different operator must decide</span>';
+        } else if (data.canApprove) {
+          decide = '<button class="primary" data-approve="' + esc(r.reference) + '">Approve</button> '
+            + '<button class="ghost" data-reject="' + esc(r.reference) + '">Reject</button>';
+        } else {
+          decide = '<span class="tiny">your role cannot approve</span>';
+        }
+      }
+      return '<tr>'
+        + '<td class="mono">' + esc(r.reference) + '<div class="tiny">' + timeAgo(r.createdAt) + '</div></td>'
+        + '<td><b>' + esc(r.title) + '</b><div class="tiny mono">' + esc(r.type) + '</div></td>'
+        + '<td class="right money">' + esc(r.amount || '—') + '</td>'
+        + '<td class="tiny">' + esc(r.maker) + '<div>' + esc(r.makerRole) + '</div></td>'
+        + '<td class="tiny">' + esc(r.checker || '—') + (r.checkerNote ? '<div>' + esc(r.checkerNote) + '</div>' : '') + '</td>'
+        + '<td>' + statusTag(r.status) + '</td>'
+        + '<td>' + decide + '</td></tr>';
+    }).join('');
+
+    var canCreate = can('maker_checker:create');
+    view.innerHTML = '<section class="card"><div class="toolbar">'
+      + '<div><h3 style="margin:0">Four-eyes approval queue</h3><div class="hint" style="margin:0">' + data.pendingCount + ' pending · requests expire after 24 hours</div></div>'
+      + '<div style="flex:1"></div>'
+      + (canCreate ? '<button class="ghost" id="raiseRate">Propose FX rate change</button><button class="ghost" id="raiseTopup">Propose float top-up</button>' : '')
+      + '</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Request</th><th>What</th><th class="right">Amount</th><th>Maker</th><th>Checker</th><th>Status</th><th>Decision</th></tr></thead>'
+      + '<tbody>' + (rows || '<tr><td colspan="7" class="empty">Queue is empty. Sensitive operations raised by operators appear here for a second signature.</td></tr>') + '</tbody></table></div></section>';
+
+    if ($('raiseRate')) $('raiseRate').onclick = proposeRateChange;
+    if ($('raiseTopup')) $('raiseTopup').onclick = proposeFloatTopUp;
+
+    Array.prototype.forEach.call(view.querySelectorAll('[data-approve]'), function (button) {
+      button.onclick = function () { decide(button.getAttribute('data-approve'), 'APPROVE'); };
+    });
+    Array.prototype.forEach.call(view.querySelectorAll('[data-reject]'), function (button) {
+      button.onclick = function () { decide(button.getAttribute('data-reject'), 'REJECT'); };
+    });
+  });
+};
+
+function decide(reference, action) {
+  openModal((action === 'APPROVE' ? 'Approve ' : 'Reject ') + reference,
+    '<div class="empty" style="text-align:left">You are acting as the <b>checker</b>. Your identity, role and timestamp are written permanently to the audit trail' + (action === 'APPROVE' ? ', and the effect is applied immediately.' : '; the request will not take effect.') + '</div>'
+    + '<label class="tiny" style="display:block;margin-top:12px">Checker note</label>'
+    + '<textarea id="mcNote" rows="3" style="width:100%"></textarea>');
+  setModalFooter('<button class="ghost" data-close="1">Cancel</button><button class="' + (action === 'APPROVE' ? 'primary' : 'danger-btn') + '" id="mcSubmit">' + action + '</button>');
+  $('mcSubmit').onclick = function () {
+    api('/admin/maker-checker/' + encodeURIComponent(reference) + '/decide', {
+      method: 'POST', body: { action: action, note: $('mcNote').value.trim() }
+    }).then(function (result) {
+      toast('Request ' + result.status.toLowerCase() + '.', 'ok');
+      closeModal(); go('makerchecker');
+    }).catch(function (err) { toast(err.message, 'err'); });
+  };
+}
+
+function proposeRateChange() {
+  api('/admin/fx').then(function (data) {
+    openModal('Propose FX rate change',
+      '<div class="tiny" style="margin-bottom:12px">Rates are retail (what the customer sees). The base rate is the market rate used to cost the payout. A second operator must approve before any customer sees the new price.</div>'
+      + '<label class="tiny">Corridor</label>'
+      + '<select id="fxCurrency" style="width:100%;margin-bottom:10px">'
+      + data.corridors.map(function (c) {
+          return '<option value="' + esc(c.currency) + '">' + esc(c.country) + ' (' + esc(c.currency) + ') — base ' + c.baseRate + ' / retail ' + c.retailRate + '</option>';
+        }).join('') + '</select>'
+      + '<div class="split">'
+      + '<div><label class="tiny">New base rate</label><input type="number" step="0.0001" id="fxBase" style="width:100%" /></div>'
+      + '<div><label class="tiny">New retail rate</label><input type="number" step="0.0001" id="fxRetail" style="width:100%" /></div>'
+      + '</div>'
+      + '<label class="tiny" style="display:block;margin-top:10px">Reason (min 10 chars)</label>'
+      + '<textarea id="fxReason" rows="3" style="width:100%" placeholder="Market move / margin adjustment"></textarea>');
+    setModalFooter('<button class="ghost" data-close="1">Cancel</button><button class="primary" id="fxSubmit">Submit for approval</button>');
+    $('fxSubmit').onclick = function () {
+      api('/admin/fx/rate-change', {
+        method: 'POST',
+        body: {
+          currency: $('fxCurrency').value,
+          baseRate: Number($('fxBase').value),
+          retailRate: Number($('fxRetail').value),
+          reason: $('fxReason').value.trim()
+        }
+      }).then(function (result) {
+        toast('Rate change queued: ' + result.request.reference, 'ok');
+        closeModal(); go('makerchecker');
+      }).catch(function (err) { toast(err.message, 'err'); });
+    };
+  });
+}
+
+function proposeFloatTopUp() {
+  api('/admin/liquidity').then(function (data) {
+    openModal('Propose float top-up',
+      '<div class="tiny" style="margin-bottom:12px">Records that value has been wired to a payout partner. The ledger entry is only posted when a second operator approves, and the pool balance updates at the same time.</div>'
+      + '<label class="tiny">Pool</label>'
+      + '<select id="poolKey" style="width:100%;margin-bottom:10px">'
+      + data.pools.map(function (p) {
+          return '<option value="' + esc(p.key) + '">' + esc(p.name) + ' — ' + esc(p.balance) + '</option>';
+        }).join('') + '</select>'
+      + '<div class="split">'
+      + '<div><label class="tiny">Amount</label><input type="number" step="0.01" id="poolAmount" style="width:100%" /></div>'
+      + '<div><label class="tiny">Bank reference</label><input type="text" id="poolRef" style="width:100%" placeholder="QNB wire reference" /></div>'
+      + '</div>'
+      + '<label class="tiny" style="display:block;margin-top:10px">Memo</label>'
+      + '<input type="text" id="poolMemo" style="width:100%" placeholder="Float replenishment" />');
+    setModalFooter('<button class="ghost" data-close="1">Cancel</button><button class="primary" id="poolSubmit">Submit for approval</button>');
+    $('poolSubmit').onclick = function () {
+      api('/admin/liquidity/topup', {
+        method: 'POST',
+        body: {
+          poolKey: $('poolKey').value,
+          amount: $('poolAmount').value,
+          reference: $('poolRef').value.trim(),
+          memo: $('poolMemo').value.trim()
+        }
+      }).then(function (result) {
+        toast('Top-up queued: ' + result.request.reference, 'ok');
+        closeModal(); go('makerchecker');
+      }).catch(function (err) { toast(err.message, 'err'); });
+    };
+  });
+}
+
+/* ================================ KYC ================================== */
+RENDERERS.kyc = function (view) {
+  return api('/admin/kyc?status=ALL&limit=200').then(function (data) {
+    var rows = (data.queue || []).map(function (q) {
+      var screening = q.screening || {};
+      var actions = '';
+      if (['PENDING', 'IN_REVIEW'].indexOf(q.status) !== -1 && can('kyc:review')) {
+        actions = '<button class="primary" data-kyc="' + q.id + '" data-name="' + esc(q.customer.name) + '">Review…</button>';
+      }
+      return '<tr>'
+        + '<td><b>' + esc(q.customer.name) + '</b><div class="tiny">' + esc(q.customer.reference) + ' · ' + esc(q.customer.phone) + '</div></td>'
+        + '<td>' + esc(q.documentType) + '<div class="mono tiny">' + esc(q.documentMasked || '') + '</div></td>'
+        + '<td class="right">' + (q.livenessScore !== null ? q.livenessScore + '%' : '—') + '<div class="tiny">liveness</div></td>'
+        + '<td class="right">' + (q.faceMatchScore !== null ? q.faceMatchScore + '%' : '—') + '<div class="tiny">face match</div></td>'
+        + '<td>' + (screening.outcome ? '<span class="tag ' + (screening.outcome === 'CLEAR' ? 't-ok' : 't-bad') + '">' + esc(screening.outcome) + '</span>' : '<span class="tag t-mute">not screened</span>') + '</td>'
+        + '<td>Tier ' + q.customer.currentTier + ' → ' + q.requestedTier + '<div class="tiny">' + esc(q.customer.lifetimeVolume) + ' lifetime</div></td>'
+        + '<td>' + statusTag(q.status) + '</td>'
+        + '<td>' + actions + '</td></tr>';
+    }).join('');
+
+    view.innerHTML = '<section class="card"><h3>Identity verification queue</h3>'
+      + '<div class="hint">Approving grants the tier and raises the customer\'s monthly limit. Rejections must carry a note; customers see it in the app.</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Customer</th><th>Document</th><th class="right">Liveness</th><th class="right">Face</th><th>Screening</th><th>Tier</th><th>Status</th><th></th></tr></thead>'
+      + '<tbody>' + (rows || '<tr><td colspan="8" class="empty">No submissions. Customers submit from the app after signing in with SMS OTP.</td></tr>') + '</tbody></table></div></section>';
+
+    Array.prototype.forEach.call(view.querySelectorAll('[data-kyc]'), function (button) {
+      button.onclick = function () { reviewKyc(button.getAttribute('data-kyc'), button.getAttribute('data-name')); };
+    });
+  });
+};
+
+function reviewKyc(id, name) {
+  openModal('Review KYC — ' + name,
+    '<div class="tiny" style="margin-bottom:10px">Approving an identity document is a regulated decision. If the document does not match the customer name, reject and request a new submission.</div>'
+    + '<label class="tiny">Decision</label>'
+    + '<select id="kycDecision" style="width:100%;margin-bottom:10px">'
+    + '<option value="APPROVE">Approve</option><option value="REJECT">Reject</option><option value="ESCALATE">Escalate to MLRO</option></select>'
+    + '<label class="tiny">Tier to grant (on approval)</label>'
+    + '<select id="kycTier" style="width:100%;margin-bottom:10px">'
+    + '<option value="1">Tier 1 — ID only</option><option value="2" selected>Tier 2 — QID + address</option><option value="3">Tier 3 — enhanced due diligence</option></select>'
+    + '<label class="tiny">Reviewer note</label><textarea id="kycNote" rows="3" style="width:100%"></textarea>');
+  setModalFooter('<button class="ghost" data-close="1">Cancel</button><button class="primary" id="kycSubmit">Record decision</button>');
+  $('kycSubmit').onclick = function () {
+    api('/admin/kyc/' + id + '/review', {
+      method: 'POST',
+      body: {
+        decision: $('kycDecision').value,
+        tier: Number($('kycTier').value),
+        note: $('kycNote').value.trim() || 'Reviewed by ' + state.operator.email
+      }
+    }).then(function (result) { toast('KYC ' + result.status + '.', 'ok'); closeModal(); go('kyc'); })
+      .catch(function (err) { toast(err.message, 'err'); });
+  };
+}
+
+/* ============================== LEDGER ================================= */
+RENDERERS.ledger = function (view) {
+  return api('/admin/ledger?limit=100').then(function (data) {
+    var integrity = data.integrity || {};
+    var journals = (data.journals || []).map(function (j) {
+      return '<tr><td class="mono">' + esc(j.reference) + '<div class="tiny">' + timeAgo(j.posted_at) + '</div></td>'
+        + '<td>' + esc(j.journal_type) + (j.is_cross_currency ? ' <span class="tag t-info">fx</span>' : '') + '</td>'
+        + '<td class="right money">' + esc(moneyFromMinor(j.total_qar_minor, 'QAR')) + '</td>'
+        + '<td class="right">' + j.leg_count + '</td>'
+        + '<td class="tiny">' + esc(j.posted_by) + '</td>'
+        + '<td><button class="ghost" data-journal="' + esc(j.id) + '">Legs</button></td></tr>';
+    }).join('');
+
+    var trial = (data.trialBalance || []).map(function (a) {
+      var net = Number(a.net_minor);
+      return '<tr><td class="mono">' + esc(a.code) + '<div class="tiny">' + esc(a.name) + '</div></td>'
+        + '<td>' + esc(a.class) + '</td><td>' + esc(a.currency) + '</td>'
+        + '<td class="right money">' + esc(moneyFromMinor(a.debits_minor, a.currency)) + '</td>'
+        + '<td class="right money">' + esc(moneyFromMinor(a.credits_minor, a.currency)) + '</td>'
+        + '<td class="right money" style="color:' + (net === 0 ? '#5F7A6E' : net > 0 ? '#047857' : '#B45309') + '">' + esc(moneyFromMinor(net, a.currency)) + '</td></tr>';
+    }).join('');
+
+    var positions = (data.currencyPositions || []).map(function (p) {
+      return '<tr><td>' + esc(p.currency) + '</td>'
+        + '<td class="right money">' + esc(moneyFromMinor(p.net_minor, p.currency)) + '</td>'
+        + '<td class="right money tiny">' + esc(moneyFromMinor(p.translated_net_qar_minor, 'QAR')) + '</td></tr>';
+    }).join('');
+
+    var shortfalls = (data.floatShortfalls || []).map(function (s) {
+      return '<tr><td>' + esc(s.currency) + '</td><td class="right money">' + esc(s.owed) + '</td>'
+        + '<td class="right money">' + esc(s.float) + '</td><td class="right money" style="color:#B91C1C">' + esc(s.shortfall) + '</td></tr>';
+    }).join('');
+
+    view.innerHTML =
+      '<div class="grid g4">'
+      + '<div class="card"><div class="kpi-label">Journals</div><div class="kpi">' + (integrity.journals_total || 0) + '</div><div class="delta">' + (integrity.entries_total || 0) + ' entries</div></div>'
+      + '<div class="card"><div class="kpi-label">Integrity</div><div class="kpi">' + (integrity.books_balanced ? '✔' : '✘') + '</div><div class="delta">' + (integrity.journals_unbalanced || 0) + ' unbalanced journal(s)</div></div>'
+      + '<div class="card"><div class="kpi-label">Cross-currency journals</div><div class="kpi">' + (integrity.cross_currency_journals || 0) + '</div><div class="delta">validated in translated QAR</div></div>'
+      + '<div class="card"><div class="kpi-label">Float shortfalls</div><div class="kpi">' + (data.floatShortfalls || []).length + '</div><div class="delta">currencies that cannot cover committed payouts</div></div>'
+      + '</div>'
+      + '<section class="card"><h3>Reconciliation</h3>'
+      + '<div class="hint">The two checks an examiner asks for first: customer wallets versus the ledger liability, and quarantined funds versus held transfers.</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Check</th><th class="right">One side</th><th class="right">Other side</th><th class="right">Difference</th><th>Status</th></tr></thead><tbody>'
+      + '<tr><td>Customer wallets vs ledger liability</td>'
+      + '<td class="right money">' + esc((data.walletReconciliation || {}).wallets || '—') + '</td>'
+      + '<td class="right money">' + esc((data.walletReconciliation || {}).ledgerLiability || '—') + '</td>'
+      + '<td class="right money">' + esc((data.walletReconciliation || {}).difference || '—') + '</td>'
+      + '<td>' + ((data.walletReconciliation || {}).reconciled ? '<span class="tag t-ok">reconciled</span>' : '<span class="tag t-bad">investigate</span>') + '</td></tr>'
+      + '<tr><td>AML suspense vs held transfers</td>'
+      + '<td class="right money">' + esc((data.suspensePosition || {}).suspense || '—') + '</td>'
+      + '<td class="right money">' + esc((data.suspensePosition || {}).heldTransfers || '—') + '</td>'
+      + '<td class="right money">' + esc((data.suspensePosition || {}).difference || '—') + '</td>'
+      + '<td>' + (Number((data.suspensePosition || {}).difference_minor) === 0 ? '<span class="tag t-ok">reconciled</span>' : '<span class="tag t-warn">check</span>') + '</td></tr>'
+      + '</tbody></table></div></section>'
+      + (shortfalls ? '<section class="card"><h3>Float shortfall</h3><div class="hint">Payouts in these currencies are queued, not sent, until Treasury funds the float.</div><div class="table-wrap"><table><thead><tr><th>Ccy</th><th class="right">Committed</th><th class="right">Float</th><th class="right">Shortfall</th></tr></thead><tbody>' + shortfalls + '</tbody></table></div></section>' : '')
+      + '<div class="grid g2">'
+      + '<section class="card"><h3>Currency positions</h3><div class="hint">Net exposure per currency after all settled transfers</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Ccy</th><th class="right">Net</th><th class="right">In QAR</th></tr></thead><tbody>' + (positions || '<tr><td colspan="3" class="empty">No postings yet.</td></tr>') + '</tbody></table></div></section>'
+      + '<section class="card"><h3>Chart of accounts</h3><div class="hint">Trial balance — every account, both sides</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Account</th><th>Class</th><th>Ccy</th><th class="right">Debits</th><th class="right">Credits</th><th class="right">Net</th></tr></thead><tbody>' + (trial || '<tr><td colspan="6" class="empty">No accounts posted.</td></tr>') + '</tbody></table></div></section>'
+      + '</div>'
+      + '<section class="card"><h3>Journals</h3><div class="hint">Append-only. Corrections are reversing journals, never edits.</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Journal</th><th>Type</th><th class="right">QAR value</th><th class="right">Legs</th><th>Posted by</th><th></th></tr></thead><tbody>'
+      + (journals || '<tr><td colspan="6" class="empty">No journals posted yet.</td></tr>') + '</tbody></table></div></section>';
+
+    Array.prototype.forEach.call(view.querySelectorAll('[data-journal]'), function (button) {
+      button.onclick = function () { openJournal(button.getAttribute('data-journal')); };
+    });
+  });
+};
+
+/* ============================= TREASURY ================================ */
+RENDERERS.treasury = function (view) {
+  // Guarded: an MLRO has no FX or liquidity permission, so the treasury view
+  // degrades to an explanation instead of a 403 error box.
+  if (!can('fx:read') && !can('liquidity:read')) {
+    view.innerHTML = '<section class="card"><div class="empty">Treasury pricing and liquidity are not part of your role.<br />'
+      + 'Ask a Treasury officer or a Super Admin to change a rate or fund a float.</div></section>';
+    return Promise.resolve();
+  }
+  return Promise.all([
+    can('fx:read') ? api('/admin/fx') : Promise.resolve({ corridors: [] }),
+    can('liquidity:read') ? api('/admin/liquidity') : Promise.resolve({
+      pools: [], floatAccounts: [], pendingTopUps: [], floatShortfalls: [], awaitingFloat: [],
+    })
+  ]).then(function (results) {
+    var fx = results[0], liquidity = results[1];
+
+    var fxRows = fx.corridors.map(function (c) {
+      return '<tr><td>' + esc(c.flag || '') + ' ' + esc(c.country) + '<div class="mono tiny">' + esc(c.currency) + '</div></td>'
+        + '<td class="right money">' + c.baseRate.toFixed(4) + '</td>'
+        + '<td class="right money">' + c.retailRate.toFixed(4) + '</td>'
+        + '<td class="right">' + c.spreadPercent + '%</td>'
+        + '<td class="right money">' + esc(c.perTransferLimitQar) + '</td>'
+        + '<td class="tiny">' + timeAgo(c.updatedAt) + '</td>'
+        + '<td><button class="ghost" data-market="' + esc(c.currency) + '">Market rate…</button></td></tr>';
+    }).join('');
+
+    var poolRows = (liquidity.pools || []).map(function (p) {
+      var pct = p.minThresholdMinor > 0 ? Math.min(100, Math.round(p.balanceMinor / (p.minThresholdMinor * 4 || 1) * 100)) : 0;
+      return '<tr><td><b>' + esc(p.name) + '</b><div class="tiny">' + esc(p.provider) + ' · ' + esc(p.currency) + '</div></td>'
+        + '<td class="right money">' + esc(p.balance) + '</td>'
+        + '<td style="min-width:150px"><span class="track"><span class="fill' + (p.belowThreshold ? ' red' : '') + '" style="width:' + pct + '%"></span></span></td>'
+        + '<td>' + (p.belowThreshold ? '<span class="tag t-bad">below minimum</span>' : '<span class="tag t-ok">funded</span>') + '</td>'
+        + '<td class="tiny">' + timeAgo(p.updatedAt) + '</td></tr>';
+    }).join('');
+
+    var shortfalls = (liquidity.floatShortfalls || []).map(function (s) {
+      return '<tr><td>' + esc(s.currency) + '</td><td class="right money">' + esc(s.owed) + '</td>'
+        + '<td class="right money">' + esc(s.float) + '</td>'
+        + '<td class="right money" style="color:#B91C1C">' + esc(s.shortfall) + '</td></tr>';
+    }).join('');
+
+    var awaiting = (liquidity.awaitingFloat || []).map(function (row) {
+      return '<tr><td>' + esc(row.currency) + '</td><td class="right">' + row.payouts + '</td>'
+        + '<td class="right money">' + esc(row.owed) + '</td></tr>';
+    }).join('');
+
+    var pending = (liquidity.pendingTopUps || []).map(function (r) {
+      return '<tr><td class="mono">' + esc(r.reference) + '</td><td>' + esc(r.title) + '</td><td class="right money">' + esc(r.amount || '—') + '</td><td class="tiny">' + esc(r.maker) + '</td></tr>';
+    }).join('');
+
+    view.innerHTML =
+      '<section class="card"><h3>Corridor pricing</h3><div class="hint">Base = market rate used to cost payouts · Retail = rate shown to customers · every change needs a second signature.</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Corridor</th><th class="right">Base</th><th class="right">Retail</th><th class="right">Margin</th><th class="right">Per transfer</th><th>Updated</th><th></th></tr></thead>'
+      + '<tbody>' + (fxRows || '<tr><td colspan="7" class="empty">No corridors. Provision them first: <code>npm run provision:corridors</code></td></tr>') + '</tbody></table></div></section>'
+      + (shortfalls ? '<section class="card"><h3>Float shortfalls</h3><div class="hint">Payouts in these currencies are queued, not sent, until the float is funded. Raise a float top-up and have a second operator approve it.</div>'
+        + '<div class="table-wrap"><table><thead><tr><th>Ccy</th><th class="right">Committed</th><th class="right">Float</th><th class="right">Shortfall</th></tr></thead><tbody>' + shortfalls + '</tbody></table></div>'
+        + (awaiting ? '<div class="hint" style="margin-top:12px">Queued payouts waiting for float</div><div class="table-wrap"><table><thead><tr><th>Ccy</th><th class="right">Payouts</th><th class="right">Value</th></tr></thead><tbody>' + awaiting + '</tbody></table></div>' : '')
+        + (can('liquidity:operate') ? '<div class="toolbar" style="margin-top:12px"><button class="primary" id="retryQueued">Re-dispatch queued payouts</button></div>' : '') + '</section>' : '')
+      + '<section class="card"><h3>Liquidity pools</h3><div class="hint">Payout partners must be pre-funded; a payout that cannot be covered is queued automatically.</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Pool</th><th class="right">Balance</th><th>Health</th><th>Status</th><th>Updated</th></tr></thead><tbody>'
+      + (poolRows || '<tr><td colspan="5" class="empty">No pools provisioned.</td></tr>') + '</tbody></table></div>'
+      + (pending ? '<div class="hint" style="margin-top:14px">Pending top-ups awaiting a checker</div><div class="table-wrap"><table><tbody>' + pending + '</tbody></table></div>' : '')
+      + '</section>';
+
+    if ($('retryQueued')) {
+      $('retryQueued').onclick = function () {
+        api('/admin/liquidity/retry-queued', { method: 'POST' })
+          .then(function (result) { toast(result.message, 'ok'); go('treasury'); })
+          .catch(function (err) { toast(err.message, 'err'); });
+      };
+    }
+
+    Array.prototype.forEach.call(view.querySelectorAll('[data-market]'), function (button) {
+      button.onclick = function () {
+        var currency = button.getAttribute('data-market');
+        openModal(currency + ' — market reference', '<div class="empty">Querying the pricing engine…</div>');
+        api('/admin/fx/' + currency + '/market').then(function (data) {
+          setModalBody(data.ok
+            ? '<div class="empty" style="text-align:left">Rail rate: <b class="money">' + data.providerRate + '</b><br />Current base: <b class="money">' + data.currentBase + '</b><br /><br />Suggested (1.5% margin): base <b>' + data.suggestion.baseRate + '</b>, retail <b>' + data.suggestion.retailRate + '</b>.<br /><br /><span class="tiny">Nothing is applied automatically — raise a rate change and have a second operator approve it.</span></div>'
+            : '<div class="empty" style="text-align:left">Market rate unavailable: ' + esc(data.reason) + '<br /><br /><span class="tiny">Check the Flutterwave credentials, or set the rate manually from your Treasury source.</span></div>');
+        });
+      };
+    });
+  });
+};
+
+/* ============================= CUSTOMERS =============================== */
+RENDERERS.customers = function (view) {
+  var search = state.data.customerSearch || '';
+  return api('/admin/customers?limit=200' + (search ? '&search=' + encodeURIComponent(search) : '')).then(function (data) {
+    var rows = (data.customers || []).map(function (c) {
+      var actions = '<button class="ghost" data-credit="' + esc(c.reference) + '">Credit wallet…</button>';
+      if (can('customers:write')) {
+        actions += c.status === 'SUSPENDED'
+          ? ' <button class="ghost" data-status="' + esc(c.reference) + '" data-next="ACTIVE">Reactivate…</button>'
+          : ' <button class="ghost" data-status="' + esc(c.reference) + '" data-next="SUSPENDED">Suspend…</button>';
+      }
+      return '<tr><td><b>' + esc(c.name) + '</b><div class="tiny">' + esc(c.reference) + '</div></td>'
+        + '<td class="tiny">' + esc(c.phone) + (c.email ? '<div>' + esc(c.email) + '</div>' : '') + '</td>'
+        + '<td>Tier ' + c.kycTier + '<div>' + riskTag(c.riskLevel) + (c.pep ? ' <span class="tag t-high">PEP</span>' : '') + '</div></td>'
+        + '<td class="right money">' + esc(c.wallet) + '</td>'
+        + '<td class="right money tiny">' + esc(c.lifetimeVolume) + '<div>' + esc(c.monthToDate) + ' this month</div></td>'
+        + '<td>' + statusTag(c.status) + '</td>'
+        + '<td>' + actions + '</td></tr>';
+    }).join('');
+
+    view.innerHTML = '<section class="card"><div class="toolbar">'
+      + '<input type="text" id="custSearch" placeholder="Search name, reference or phone" value="' + esc(search) + '" style="min-width:280px" />'
+      + '<button class="ghost" id="custApply">Search</button></div>'
+      + '<div class="hint">Wallet credits below match an inbound bank payment to a customer account; the ledger posts a funding journal and the action is audited.</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Customer</th><th>Contact</th><th>KYC</th><th class="right">Wallet</th><th class="right">Volume</th><th>Status</th><th></th></tr></thead>'
+      + '<tbody>' + (rows || '<tr><td colspan="7" class="empty">No customers yet — they appear here after their first SMS sign-in.</td></tr>') + '</tbody></table></div></section>';
+
+    $('custApply').onclick = function () { state.data.customerSearch = $('custSearch').value.trim(); go('customers'); };
+    Array.prototype.forEach.call(view.querySelectorAll('[data-credit]'), function (button) {
+      button.onclick = function () { creditWallet(button.getAttribute('data-credit')); };
+    });
+    Array.prototype.forEach.call(view.querySelectorAll('[data-status]'), function (button) {
+      button.onclick = function () { changeStatus(button.getAttribute('data-status'), button.getAttribute('data-next')); };
+    });
+  });
+};
+
+function creditWallet(reference) {
+  openModal('Credit wallet — ' + reference,
+    '<div class="tiny" style="margin-bottom:10px">Use this when a customer funds by bank transfer and the deposit has been verified on the bank statement. The amount is credited to their AfriSend wallet and a ledger funding journal is posted.</div>'
+    + '<div class="split">'
+    + '<div><label class="tiny">Amount (QAR)</label><input type="number" step="0.01" id="creditAmount" style="width:100%" /></div>'
+    + '<div><label class="tiny">Bank reference</label><input type="text" id="creditRef" style="width:100%" placeholder="QNB deposit reference" /></div>'
+    + '</div>'
+    + '<label class="tiny" style="display:block;margin-top:10px">Note</label><input type="text" id="creditNote" style="width:100%" />');
+  setModalFooter('<button class="ghost" data-close="1">Cancel</button><button class="primary" id="creditSubmit">Post credit</button>');
+  $('creditSubmit').onclick = function () {
+    api('/admin/customers/' + encodeURIComponent(reference) + '/wallet-credit', {
+      method: 'POST',
+      body: { amount: $('creditAmount').value, bankReference: $('creditRef').value.trim(), note: $('creditNote').value.trim() }
+    }).then(function (result) { toast('Credited ' + result.amount + '.', 'ok'); closeModal(); go('customers'); })
+      .catch(function (err) { toast(err.message, 'err'); });
+  };
+}
+
+function changeStatus(reference, next) {
+  openModal(next + ' — ' + reference,
+    '<div class="tiny" style="margin-bottom:10px">Account status changes require a second operator (four-eyes). The request is queued with your name; the change applies once approved.</div>'
+    + '<label class="tiny">Reason (min 10 chars)</label><textarea id="statusReason" rows="3" style="width:100%"></textarea>');
+  setModalFooter('<button class="ghost" data-close="1">Cancel</button><button class="primary" id="statusSubmit">Queue for approval</button>');
+  $('statusSubmit').onclick = function () {
+    api('/admin/customers/' + encodeURIComponent(reference) + '/status', {
+      method: 'POST', body: { status: next, reason: $('statusReason').value.trim() }
+    }).then(function (result) { toast('Queued: ' + result.request.reference, 'ok'); closeModal(); go('makerchecker'); })
+      .catch(function (err) { toast(err.message, 'err'); });
+  };
+}
+
+/* ============================= COMPLIANCE ============================== */
+RENDERERS.compliance = function (view) {
+  return Promise.all([
+    can('reports:generate') ? api('/admin/reports') : Promise.resolve({ reports: [] }),
+    can('aml:review') ? api('/admin/sanctions') : Promise.resolve({ coverage: [], recentScreens: [], thresholds: {} }),
+    can('audit:read') ? api('/admin/webhooks?limit=25') : Promise.resolve({ events: [] })
+  ]).then(function (results) {
+    var reports = results[0], sanctions = results[1], webhooks = results[2];
+
+    var reportRows = (reports.reports || []).map(function (r) {
+      return '<tr><td class="mono">' + esc(r.filing_id) + '</td><td>' + esc(r.report_type) + '</td>'
+        + '<td class="tiny">' + esc(r.period_start) + ' → ' + esc(r.period_end) + '</td>'
+        + '<td class="tiny">' + clock(r.created_at) + '</td>'
+        + '<td class="tiny">' + esc(r.generated_by_email) + '</td>'
+        + '<td><button class="ghost" data-report="' + esc(r.filing_id) + '">Open</button></td></tr>';
+    }).join('');
+
+    var coverage = (sanctions.coverage || []).map(function (s) {
+      return '<tr><td>' + esc(s.list_source) + '</td><td class="right">' + s.entries.toLocaleString() + '</td><td class="tiny">' + timeAgo(s.last_import) + '</td></tr>';
+    }).join('');
+
+    var screens = (sanctions.recentScreens || []).map(function (s) {
+      return '<tr><td class="tiny">' + esc(s.subject_type) + '</td><td>' + esc(s.query_name) + '</td>'
+        + '<td>' + esc(s.outcome) + '</td><td class="right">' + (s.best_score !== null ? Number(s.best_score).toFixed(3) : '—') + '</td>'
+        + '<td class="tiny">' + timeAgo(s.screened_at) + '</td></tr>';
+    }).join('');
+
+    var hookRows = (webhooks.events || []).map(function (e) {
+      return '<tr><td class="tiny">' + clock(e.received_at) + '</td><td>' + esc(e.provider) + '</td><td class="mono tiny">' + esc(e.event_type) + '</td>'
+        + '<td>' + (e.signature_ok ? '<span class="tag t-ok">signed</span>' : '<span class="tag t-bad">rejected</span>') + '</td>'
+        + '<td class="tiny">' + (e.error ? esc(e.error) : (e.processed_at ? 'processed' : 'pending')) + '</td>'
+        + '<td><button class="ghost" data-replay="' + e.id + '">Replay</button></td></tr>';
+    }).join('');
+
+    view.innerHTML =
+      '<section class="card"><div class="toolbar"><div><h3 style="margin:0">QCB regulatory filings</h3>'
+      + '<div class="hint" style="margin:0">Reports are computed from the live ledger and signed with the platform RSA key, so their integrity can be proven years later.</div></div>'
+      + '<div style="flex:1"></div>'
+      + (can('reports:generate') ? '<button class="primary" id="genQcb">Generate AML return</button><button class="ghost" id="ctrBtn">CTR extract (today)</button>' : '')
+      + '</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Filing</th><th>Type</th><th>Period</th><th>Generated</th><th>By</th><th></th></tr></thead>'
+      + '<tbody>' + (reportRows || '<tr><td colspan="6" class="empty">No filings generated yet.</td></tr>') + '</tbody></table></div></section>'
+
+      + '<div class="grid g2">'
+      + '<section class="card"><h3>Sanctions / PEP lists</h3><div class="hint">Screening thresholds: match ≥ ' + (sanctions.thresholds.match || '—') + ', review ≥ ' + (sanctions.thresholds.review || '—') + '</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>List</th><th class="right">Names</th><th>Last import</th></tr></thead><tbody>'
+      + (coverage || '<tr><td colspan="3" class="empty">No list imported. Transfers stay held until one is loaded.</td></tr>') + '</tbody></table></div></section>'
+      + '<section class="card"><h3>Recent screening</h3><div class="hint">Newest checks across customers, beneficiaries and transfers</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Subject</th><th>Name</th><th>Outcome</th><th class="right">Score</th><th>When</th></tr></thead><tbody>'
+      + (screens || '<tr><td colspan="5" class="empty">No screening performed yet.</td></tr>') + '</tbody></table></div></section>'
+      + '</div>'
+
+      + '<section class="card"><h3>Provider webhooks</h3><div class="hint">Every delivery is stored with its signature verdict. Replay re-applies a stored event idempotently.</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>Received</th><th>Rail</th><th>Event</th><th>Signature</th><th>Result</th><th></th></tr></thead>'
+      + '<tbody>' + (hookRows || '<tr><td colspan="6" class="empty">No webhook deliveries recorded.</td></tr>') + '</tbody></table></div></section>';
+
+    if ($('genQcb')) {
+      $('genQcb').onclick = function () {
+        toast('Generating return…');
+        api('/admin/reports/qcb', { method: 'POST', body: {} })
+          .then(function (result) { showReport(result.report); go('compliance'); })
+          .catch(function (err) { toast(err.message, 'err'); });
+      };
+    }
+    if ($('ctrBtn')) {
+      $('ctrBtn').onclick = function () {
+        var today = new Date().toISOString().slice(0, 10);
+        api('/admin/reports/ctr/extract?date=' + today)
+          .then(function (data) {
+            openModal('CTR extract — ' + today,
+              '<div class="tiny" style="margin-bottom:10px">Threshold: ' + data.thresholdQar + ' QAR per transfer. ' + data.rows.length + ' reportable transfer(s).</div>'
+              + '<div class="table-wrap"><table><thead><tr><th>Reference</th><th>Customer</th><th class="right">Amount</th><th>Beneficiary</th><th>Status</th></tr></thead><tbody>'
+              + (data.rows.map(function (r) {
+                  return '<tr><td class="mono">' + esc(r.reference) + '</td><td>' + esc(r.full_name) + '<div class="tiny">' + esc(r.public_ref) + '</div></td>'
+                    + '<td class="right money">' + esc(moneyFromMinor(r.total_debit_qar_minor, 'QAR')) + '</td>'
+                    + '<td>' + esc(r.beneficiary_name) + '<div class="tiny">' + esc(r.institution_name || '') + '</div></td>'
+                    + '<td>' + statusTag(r.status) + '</td></tr>';
+                }).join('') || '<tr><td colspan="5" class="empty">No transfers crossed the CTR threshold today.</td></tr>')
+              + '</tbody></table></div>');
+            setModalFooter('<button class="ghost" id="ctrDownload">Download CSV</button>');
+            $('ctrDownload').onclick = function () { exportCsv('ctr-' + today, data.rows); };
+          })
+          .catch(function (err) { toast(err.message, 'err'); });
+      };
+    }
+
+    Array.prototype.forEach.call(view.querySelectorAll('[data-report]'), function (button) {
+      button.onclick = function () {
+        api('/admin/reports/' + encodeURIComponent(button.getAttribute('data-report'))).then(function (data) { showReport(data.report); });
+      };
+    });
+    Array.prototype.forEach.call(view.querySelectorAll('[data-replay]'), function (button) {
+      button.onclick = function () {
+        api('/admin/webhooks/' + button.getAttribute('data-replay') + '/replay', { method: 'POST' })
+          .then(function (result) { toast('Replay applied: ' + result.outcome.status, 'ok'); go('compliance'); })
+          .catch(function (err) { toast(err.message, 'err'); });
+      };
+    });
+  });
+};
+
+function showReport(report) {
+  var payload = typeof report.payload === 'string' ? JSON.parse(report.payload) : report.payload;
+  var transfers = payload.transfers || {};
+  var solvency = payload.solvency || {};
+  openModal('QCB filing ' + report.filing_id,
+    '<div class="grid g4" style="margin-bottom:14px">'
+    + '<div><div class="kpi-label">Transfers</div><div class="kpi sm">' + (transfers.count || 0) + '</div></div>'
+    + '<div><div class="kpi-label">Volume</div><div class="kpi sm money">' + (transfers.volumeQar || 0).toLocaleString() + ' QAR</div></div>'
+    + '<div><div class="kpi-label">Fee revenue</div><div class="kpi sm money">' + (transfers.feeRevenueQar || 0).toLocaleString() + ' QAR</div></div>'
+    + '<div><div class="kpi-label">FX spread</div><div class="kpi sm money">' + (transfers.fxSpreadRevenueQar || 0).toLocaleString() + ' QAR</div></div>'
+    + '</div>'
+    + '<div class="split"><section class="card"><h3>Institution</h3><dl class="kv">'
+    + '<dt>Name</dt><dd>' + esc(payload.institution.name) + '</dd>'
+    + '<dt>Licence</dt><dd class="mono">' + esc(payload.institution.licenseNumber) + '</dd>'
+    + '<dt>Regulator</dt><dd>' + esc(payload.institution.regulator) + '</dd>'
+    + '<dt>Period</dt><dd>' + esc(payload.reportingPeriod.start) + ' → ' + esc(payload.reportingPeriod.end) + '</dd>'
+    + '<dt>Generated</dt><dd>' + clock(payload.generatedAt) + '</dd>'
+    + '<dt>Prepared by</dt><dd>' + esc((payload.generatedBy || {}).email || '—') + '</dd>'
+    + '</dl></section>'
+    + '<section class="card"><h3>Solvency &amp; AML</h3><dl class="kv">'
+    + '<dt>Books balanced</dt><dd>' + (solvency.booksBalanced ? '✔ every journal balanced' : '✘ integrity issue') + '</dd>'
+    + '<dt>Customer liabilities</dt><dd class="money">' + (solvency.customerLiabilitiesQar || 0).toLocaleString() + ' QAR</dd>'
+    + '<dt>Liquidity held</dt><dd class="money">' + (solvency.availableLiquidityQar || 0).toLocaleString() + ' QAR</dd>'
+    + '<dt>Coverage ratio</dt><dd>' + (solvency.liquidityCoverageRatio === null ? '—' : solvency.liquidityCoverageRatio + '%') + '</dd>'
+    + '<dt>Cases opened</dt><dd>' + ((payload.aml || {}).casesOpened || 0) + '</dd>'
+    + '<dt>SARs filed</dt><dd>' + ((payload.aml || {}).suspiciousActivityReportsFiled || 0) + '</dd>'
+    + '<dt>Screening lists</dt><dd>' + (((payload.aml || {}).sanctionsListsLoaded || []).length ? 'loaded' : 'none loaded') + '</dd>'
+    + '</dl></section></div>'
+    + '<section class="card" style="margin-top:14px"><h3>Corridors</h3><div class="table-wrap"><table><thead><tr><th>Country</th><th>Ccy</th><th class="right">Transfers</th><th class="right">Volume (QAR)</th><th class="right">Avg rate</th></tr></thead><tbody>'
+    + ((transfers.byCorridor || []).map(function (c) {
+        return '<tr><td>' + esc(c.countryCode) + '</td><td>' + esc(c.currency) + '</td><td class="right">' + c.transfers + '</td>'
+          + '<td class="right money">' + c.volumeQar.toLocaleString() + '</td><td class="right money">' + c.averageRate + '</td></tr>';
+      }).join('') || '<tr><td colspan="5" class="empty">No transfers in this period.</td></tr>')
+    + '</tbody></table></div></section>'
+    + '<section class="card" style="margin-top:14px"><h3>Digital signature</h3>'
+    + '<div class="tiny">Algorithm: ' + esc((report.signature || {}).algorithm || 'RSA-PSS-SHA256') + ' · key ' + esc((report.signature || {}).kid || '') + '</div>'
+    + '<div class="mono tiny" style="word-break:break-all;margin-top:6px">' + esc(report.content_hash || report.contentHash) + '</div>'
+    + '<div class="mono tiny" style="word-break:break-all;margin-top:6px">' + esc((report.signature || {}).value || '') + '</div>'
+    + '<div class="tiny" style="margin-top:8px">Verify any time: POST /api/v1/admin/reports/qcb/verify with the filing id, hash and signature.</div></section>');
+  setModalFooter('<button class="ghost" id="reportDownload">Download JSON</button>');
+  $('reportDownload').onclick = function () {
+    download('qcb-' + report.filing_id + '.json', JSON.stringify(report, null, 2), 'application/json');
+  };
+}
+
+/* =============================== AUDIT ================================= */
+RENDERERS.audit = function (view) {
+  var filters = state.data.auditFilters || { severity: '', action: '', entityType: '' };
+  var query = '/admin/audit-logs?limit=500'
+    + (filters.severity ? '&severity=' + filters.severity : '')
+    + (filters.action ? '&action=' + encodeURIComponent(filters.action) : '')
+    + (filters.entityType ? '&entityType=' + encodeURIComponent(filters.entityType) : '');
+
+  return api(query).then(function (data) {
+    var severityStyle = { INFO: 't-mute', WARNING: 't-warn', HIGH: 't-high', CRITICAL: 't-critical', ERROR: 't-bad' };
+    var rows = (data.logs || []).map(function (l) {
+      return '<tr><td class="tiny">' + clock(l.created_at) + '</td>'
+        + '<td>' + (severityStyle[l.severity] ? '<span class="tag ' + severityStyle[l.severity] + '">' + esc(l.severity) + '</span>' : esc(l.severity)) + '</td>'
+        + '<td class="mono">' + esc(l.action) + '</td>'
+        + '<td class="tiny">' + esc(l.actor_email || l.actor_id || l.actor_type) + '<div>' + esc(l.actor_role || l.actor_type) + '</div></td>'
+        + '<td class="tiny mono">' + esc(l.entity_type || '') + '<div>' + esc(String(l.entity_id || '').slice(0, 18)) + '</div></td>'
+        + '<td class="tiny" style="max-width:340px;word-break:break-word">' + esc(JSON.stringify(l.after_state || l.metadata || {}).slice(0, 260)) + '</td>'
+        + '<td class="tiny">' + esc(l.ip_address || '—') + '</td></tr>';
+    }).join('');
+
+    view.innerHTML = '<section class="card"><div class="toolbar">'
+      + '<select id="auditSeverity"><option value="">All severities</option>'
+      + ['INFO', 'WARNING', 'HIGH', 'CRITICAL', 'ERROR'].map(function (s) {
+          return '<option value="' + s + '"' + (filters.severity === s ? ' selected' : '') + '>' + s + '</option>';
+        }).join('') + '</select>'
+      + '<input type="text" id="auditAction" placeholder="Filter by action e.g. MAKER_CHECKER_APPROVED" value="' + esc(filters.action) + '" style="min-width:280px" />'
+      + '<input type="text" id="auditEntity" placeholder="Entity type e.g. transfer" value="' + esc(filters.entityType) + '" />'
+      + '<button class="ghost" id="auditApply">Apply</button><button class="ghost" id="auditExport">Export CSV</button>'
+      + '<div style="flex:1"></div><span class="tiny">' + (data.logs || []).length + ' entries</span></div>'
+      + '<div class="hint">Append-only. The database rejects UPDATE and DELETE on this table, so nothing here can be edited or removed — not even by an administrator.</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>When</th><th>Severity</th><th>Action</th><th>Actor</th><th>Entity</th><th>Detail</th><th>IP</th></tr></thead>'
+      + '<tbody>' + (rows || '<tr><td colspan="7" class="empty">No audit entries match.</td></tr>') + '</tbody></table></div></section>';
+
+    $('auditApply').onclick = function () {
+      state.data.auditFilters = {
+        severity: $('auditSeverity').value,
+        action: $('auditAction').value.trim(),
+        entityType: $('auditEntity').value.trim()
+      };
+      go('audit');
+    };
+    $('auditExport').onclick = function () { exportCsv('afrisend-audit', data.logs); };
+  });
+};
+
+/* ============================== utilities ============================== */
+function openModal(title, bodyHtml) {
+  $('modal').innerHTML = '<header><h3>' + esc(title) + '</h3><button class="close" id="modalClose">✕</button></header>'
+    + '<div class="body" id="modalBody">' + bodyHtml + '</div><footer id="modalFooter"></footer>';
+  $('modalBack').classList.add('open');
+  $('modalClose').onclick = closeModal;
+  $('modalBack').onclick = function (event) { if (event.target === $('modalBack')) closeModal(); };
+}
+function setModalBody(html) { if ($('modalBody')) $('modalBody').innerHTML = html; }
+function setModalFooter(html) {
+  if (!$('modalFooter')) return;
+  $('modalFooter').innerHTML = html;
+  var close = $('modalFooter').querySelector('[data-close]');
+  if (close) close.onclick = closeModal;
+}
+function closeModal() { $('modalBack').classList.remove('open'); }
+
+function exportCsv(name, rows) {
+  if (!rows || !rows.length) { toast('Nothing to export.', 'err'); return; }
+  var columns = Object.keys(rows[0]);
+  var lines = [columns.join(',')].concat(rows.map(function (row) {
+    return columns.map(function (key) {
+      var value = row[key];
+      if (value === null || value === undefined) return '';
+      if (typeof value === 'object') value = JSON.stringify(value);
+      return '"' + String(value).replace(/"/g, '""') + '"';
+    }).join(',');
+  }));
+  download(name + '.csv', lines.join('\n'), 'text/csv');
+}
+function download(filename, content, type) {
+  var blob = new Blob([content], { type: type + ';charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement('a');
+  link.href = url; link.download = filename; link.click();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+}
+
+/* ============================== realtime =============================== */
+function connectStream() {
+  var token = localStorage.getItem('afrisend_access');
+  if (!token || state.eventSource) return;
+  if (state.eventSource) state.eventSource.close();
+  var source = new EventSource(API + '/admin/stream?token=' + encodeURIComponent(token));
+  state.eventSource = source;
+
+  source.addEventListener('ready', function () {
+    $('streamPill').className = 'pill live';
+    $('streamPill').innerHTML = '<span class="dot"></span> live';
+    $('railStatus').textContent = 'Realtime stream connected';
+  });
+  source.onerror = function () {
+    $('streamPill').className = 'pill down';
+    $('streamPill').innerHTML = '<span class="dot"></span> reconnecting';
+  };
+
+  var refreshKeys = ['overview', 'transfers', 'aml', 'makerchecker', 'kyc', 'ledger', 'compliance'];
+  var relevant = {
+    transfer_created: ['overview', 'transfers'],
+    transfer_updated: ['overview', 'transfers'],
+    kyc_submitted: ['kyc', 'overview'],
+    kyc_updated: ['kyc', 'overview'],
+    maker_checker_created: ['makerchecker', 'overview'],
+    maker_checker_decided: ['makerchecker', 'overview'],
+    aml_case_updated: ['aml'],
+    audit_log: [],
+    metrics_dirty: ['overview'],
+    float_alert: ['ledger', 'treasury', 'overview'],
+    webhook_received: ['compliance'],
+    report_generated: ['compliance']
+  };
+
+  Object.keys(relevant).forEach(function (event) {
+    source.addEventListener(event, function (message) {
+      var data = {};
+      try { data = JSON.parse(message.data); } catch (error) { /* ignore */ }
+      if (event !== 'audit_log' && event !== 'metrics_dirty') {
+        toast(prettyEvent(event, data), event === 'float_alert' ? 'err' : '');
+      }
+      (relevant[event] || []).forEach(function (tab) {
+        if (tab === state.tab) { state.pending[state.tab] = false; go(state.tab); }
+      });
+      if (event === 'metrics_dirty' && state.tab === 'overview') { go('overview'); }
+    });
+  });
+}
+
+function prettyEvent(event, data) {
+  switch (event) {
+    case 'transfer_created': return 'New transfer ' + (data.reference || '') + ' · ' + (data.status || '');
+    case 'transfer_updated': return 'Transfer ' + (data.reference || '') + ' → ' + (data.status || '');
+    case 'float_alert': return 'Float shortfall in ' + data.currency + ' — payouts queued';
+    case 'maker_checker_created': return 'Approval needed: ' + (data.title || data.type);
+    case 'maker_checker_decided': return 'Request ' + (data.reference || '') + ' ' + (data.status || '');
+    case 'kyc_submitted': return 'KYC submitted by ' + (data.customerName || 'customer');
+    case 'kyc_updated': return 'KYC ' + (data.status || 'updated');
+    case 'aml_case_updated': return 'AML case ' + (data.reference || '') + ' → ' + (data.status || '');
+    case 'webhook_received': return 'Webhook ' + (data.provider || '') + ' ' + (data.eventType || '');
+    case 'report_generated': return 'Filing generated: ' + (data.filingId || '');
+    default: return event;
+  }
+}
+
+/* =============================== bootstrap ============================= */
+function boot() {
+  if (!localStorage.getItem('afrisend_access')) { window.location.replace('login.html'); return; }
+  api('/admin/me').then(function (data) {
+    state.operator = data.operator;
+    localStorage.setItem('afrisend_operator', JSON.stringify(data.operator));
+    $('app').style.display = 'grid';
+    $('rolePill').textContent = data.operator.role.replace(/_/g, ' ') + ' · ' + data.operator.name;
+    $('refreshBtn').onclick = function () { go(state.tab); };
+    $('signOutBtn').onclick = function () { signOut(); };
+    $('mfaBtn').onclick = openSecurity;
+    renderNav();
+    var landing = mapTabFromHash() || defaultTab();
+    if (!landing) {
+      $('view').innerHTML = '<div class="card"><div class="empty">Your role has no console views assigned. Contact an administrator.</div></div>';
+      $('pageTitle').textContent = 'No access';
+      return;
+    }
+    go(landing);
+    connectStream();
+    setInterval(function () {
+      if (state.tab === 'overview' || state.tab === 'transfers') go(state.tab);
+    }, 30000);
+  }).catch(function () { signOut(); });
+}
+
+function mapTabFromHash() {
+  var hash = window.location.hash.replace('#', '');
+  return visibleTabs().filter(function (t) { return t.id === hash; }).length ? hash : null;
+}
+
+/** First tab this role can open — the only safe default. */
+function defaultTab() {
+  var tabs = visibleTabs();
+  return tabs.length ? tabs[0].id : null;
+}
+
+/**
+ * Security panel: the operator's own session, MFA enrolment, and — for roles
+ * that hold settings:write — the operator directory with a create form, so a
+ * second person can be onboarded for four-eyes approvals without leaving the
+ * browser.
+ */
+function openSecurity() {
+  Promise.all([
+    api('/admin/me'),
+    can('settings:write') ? api('/admin/operators') : Promise.resolve({ operators: null })
+  ]).then(function (results) {
+    var me = results[0].operator;
+    var directory = results[1].operators;
+
+    var mfaBlock = me.mfaEnabled
+      ? '<dd><span class="tag t-ok">enabled</span></dd>'
+      : '<dd><span class="tag t-warn">not enabled</span> <button class="ghost" id="startMfa" style="margin-left:8px">Enable MFA</button></dd>';
+
+    var operatorRows = (directory || []).map(function (o) {
+      return '<tr><td>' + esc(o.full_name) + '<div class="tiny">' + esc(o.email) + '</div></td>'
+        + '<td>' + esc(o.role.replace(/_/g, ' ')) + '</td>'
+        + '<td>' + (o.mfa_enabled ? '<span class="tag t-ok">MFA</span>' : '<span class="tag t-warn">no MFA</span>') + '</td>'
+        + '<td>' + (o.is_active ? '<span class="tag t-ok">active</span>' : '<span class="tag t-bad">disabled</span>') + '</td>'
+        + '<td class="tiny">' + (o.last_login_at ? timeAgo(o.last_login_at) : 'never') + '</td></tr>';
+    }).join('');
+
+    var operatorsSection = directory
+      ? '<section class="card" style="margin-top:14px"><div class="toolbar">'
+        + '<div><h3 style="margin:0">Operators</h3><div class="hint" style="margin:0">Four-eyes approvals need a second named person. Create that account here.</div></div>'
+        + '<div style="flex:1"></div><button class="primary" id="newOperator">Add operator</button></div>'
+        + '<div class="table-wrap"><table><thead><tr><th>Operator</th><th>Role</th><th>MFA</th><th>Status</th><th>Last sign-in</th></tr></thead><tbody>'
+        + (operatorRows || '<tr><td colspan="5" class="empty">No operators yet.</td></tr>')
+        + '</tbody></table></div></section>'
+      : '';
+
+    setModalBody('<section class="card"><h3>Your session</h3><dl class="kv">'
+      + '<dt>Operator</dt><dd>' + esc(me.email) + '</dd>'
+      + '<dt>Role</dt><dd>' + esc(me.role.replace(/_/g, ' ')) + '</dd>'
+      + '<dt>MFA</dt>' + mfaBlock
+      + '<dt>Permissions</dt><dd class="tiny mono">' + esc(me.permissions.join(' · ')) + '</dd>'
+      + '<dt>Last sign-in</dt><dd>' + clock(me.lastLoginAt) + '</dd>'
+      + '</dl></section>' + operatorsSection);
+
+    if ($('startMfa')) $('startMfa').onclick = startMfaEnrolment;
+    if ($('newOperator')) $('newOperator').onclick = createOperator;
+    setModalFooter('<button class="ghost" data-close="1">Close</button>');
+  });
+}
+
+/** Two-step TOTP enrolment: get the secret, then confirm the first code. */
+function startMfaEnrolment() {
+  api('/admin/me/mfa', { method: 'POST', body: {} }).then(function (data) {
+    openModal('Enable two-factor authentication',
+      '<div class="tiny" style="margin-bottom:10px">Add this secret to Google Authenticator, Authy, 1Password or Microsoft Authenticator, then enter the 6-digit code it shows.</div>'
+      + '<div class="mono" style="word-break:break-all;background:#F1F5F9;padding:10px;border-radius:10px;margin-bottom:10px">' + esc(data.secret) + '</div>'
+      + '<div class="tiny" style="margin-bottom:12px">Or open this link on the device that has your authenticator app:<br /><span class="mono" style="word-break:break-all">' + esc(data.otpauthUrl) + '</span></div>'
+      + '<label class="tiny">6-digit code</label>'
+      + '<input type="text" id="mfaCode" inputmode="numeric" maxlength="6" style="width:100%" placeholder="123456" />');
+    setModalFooter('<button class="ghost" data-close="1">Cancel</button><button class="primary" id="confirmMfa">Activate MFA</button>');
+    $('confirmMfa').onclick = function () {
+      api('/admin/me/mfa', { method: 'POST', body: { confirmCode: ($('mfaCode').value || '').trim() } })
+        .then(function (result) {
+          toast(result.mfaEnabled ? 'MFA is now required at every sign-in.' : 'Not activated.', result.mfaEnabled ? 'ok' : 'err');
+          closeModal();
+        })
+        .catch(function (err) { toast(err.message, 'err'); });
+    };
+  }).catch(function (err) { toast(err.message, 'err'); });
+}
+
+/** Create another operator (SUPER_ADMIN only — enforced by the API too). */
+function createOperator() {
+  var roles = ['COMPLIANCE_MLRO', 'COMPLIANCE_ANALYST', 'TREASURY_OFFICER', 'SUPPORT_AGENT', 'AUDITOR', 'SUPER_ADMIN'];
+  openModal('Add operator',
+    '<div class="tiny" style="margin-bottom:12px">Give each person their own account. Four-eyes approvals are only valid between two different operator accounts, and every action is attributed to the account that took it.</div>'
+    + '<label class="tiny">Work email</label><input type="text" id="opEmail" style="width:100%;margin-bottom:10px" placeholder="name@yourco.qa" />'
+    + '<label class="tiny">Full name</label><input type="text" id="opName" style="width:100%;margin-bottom:10px" placeholder="Zainab Yusuf" />'
+    + '<label class="tiny">Role</label><select id="opRole" style="width:100%;margin-bottom:10px">'
+    + roles.map(function (r) { return '<option value="' + r + '">' + r.replace(/_/g, ' ') + '</option>'; }).join('')
+    + '</select>'
+    + '<label class="tiny">Temporary password (min 12 chars, 3 character classes)</label>'
+    + '<input type="text" id="opPassword" style="width:100%" placeholder="ChangeMe!2026Abc" />'
+    + '<div class="tiny" style="margin-top:10px">They should enable MFA and change this password at first sign-in.</div>');
+  setModalFooter('<button class="ghost" data-close="1">Cancel</button><button class="primary" id="opSubmit">Create operator</button>');
+  $('opSubmit').onclick = function () {
+    api('/admin/operators', {
+      method: 'POST',
+      body: {
+        email: ($('opEmail').value || '').trim(),
+        fullName: ($('opName').value || '').trim(),
+        role: $('opRole').value,
+        password: $('opPassword').value
+      }
+    }).then(function () { toast('Operator created.', 'ok'); closeModal(); })
+      .catch(function (err) { toast(err.message, 'err'); });
+  };
+}
+
+window.addEventListener('hashchange', function () {
+  var tab = mapTabFromHash();
+  if (tab && tab !== state.tab) go(tab);
+});
+window.addEventListener('keydown', function (event) { if (event.key === 'Escape') closeModal(); });
+
+boot();
+})();
+</script>
+</body>
+</html>
