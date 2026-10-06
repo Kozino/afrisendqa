@@ -1,0 +1,166 @@
+name: CI
+
+# Runs the same verification the platform was built with:
+#   1. unit tests (money, pricing invariants, name matching, TOTP, RBAC, crypto)
+#   2. migrations apply cleanly to a real Postgres
+#   3. the API boots and serves the console
+#   4. the end-to-end smoke test passes: auth, quote, transfer, ledger,
+#      AML hold + release, four-eyes, float controls, audit, QCB report,
+#      webhook signature checks and a live sanctions hit
+#   5. the mobile bundle parses and every import resolves
+#   6. no provider secret can reach the mobile bundle
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  backend:
+    name: Backend — schema, boot and end-to-end smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: afrisend
+          POSTGRES_PASSWORD: afrisend
+          POSTGRES_DB: afrisend_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U afrisend"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgres://afrisend:afrisend@127.0.0.1:5432/afrisend_test
+      DATABASE_SSL: disable
+      JWT_SECRET: ci_jwt_secret_0123456789abcdef0123456789abcdef
+      JWT_REFRESH_SECRET: ci_refresh_secret_0123456789abcdef0123456789ab
+      PII_ENCRYPTION_KEY: "1111111111111111111111111111111111111111111111111111111111111111"
+      PII_HMAC_KEY: "2222222222222222222222222222222222222222222222222222222222222222"
+      FLW_SECRET_KEY: FLWSECK_TEST-cikeyforvalidationonly1234567890
+      FLW_WEBHOOK_HASH: ci-webhook-secret-hash-2026
+      DEV_OTP_CODE: "123456"
+      PORT: 4000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Repository hygiene
+        run: |
+          strays=$(find . -path ./node_modules -prune -o -type f \
+            \( -name '*.tmp.js' -o -name 'dbg*.js' -o -name '*.bak' -o -name '*_delete_me' \) -print)
+          if [ -n "$strays" ]; then
+            echo "::error::Scratch files must not be committed:"; echo "$strays"; exit 1
+          fi
+          if [ -f backend/.env ]; then
+            echo "::error::backend/.env must never be committed (only .env.example)"; exit 1
+          fi
+          echo "Repository is clean."
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci --no-audit --no-fund
+
+      - name: Unit tests
+        working-directory: backend
+        run: npm test
+
+      - name: Apply migrations
+        working-directory: backend
+        run: npm run migrate
+
+      - name: Provision corridors (explicit rates — no fixtures)
+        working-directory: backend
+        run: |
+          node scripts/provision-corridors.js \
+            --rate NGN=421.06 --rate GHS=4.28 --rate KES=35.55 --rate UGX=1018.40 \
+            --rate TZS=724.80 --rate RWF=394.50 --rate EGP=13.38 --rate XOF=165.20 --rate XAF=165.20
+
+      - name: Create the two operators used by the four-eyes test
+        working-directory: backend
+        run: |
+          node scripts/create-admin.js --email maker@test.local  --name Maker   --role COMPLIANCE_MLRO --password 'Maker!Passw0rd1'
+          node scripts/create-admin.js --email checker@test.local --name Checker --role SUPER_ADMIN    --password 'Checker!Passw0rd1'
+
+      - name: Start the API
+        working-directory: backend
+        run: |
+          node server.js > /tmp/api.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS http://localhost:4000/api/v1/public/healthz && break
+            sleep 1
+          done
+
+      - name: Smoke test (end to end)
+        working-directory: backend
+        run: node scripts/smoke-test.js
+
+      - name: Ledger integrity after the run
+        working-directory: backend
+        run: |
+          PGPASSWORD=afrisend psql -h 127.0.0.1 -U afrisend -d afrisend_test \
+            -c "select * from afrisend_books_integrity();" \
+            -c "select * from afrisend_currency_positions();" | tee /tmp/ledger.txt
+          grep -q "| t$" /tmp/ledger.txt || { echo "::error::The ledger did not balance"; exit 1; }
+
+      - name: API logs (on failure)
+        if: failure()
+        run: cat /tmp/api.log
+
+  mobile:
+    name: Mobile — bundle parse and import graph
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate app.json
+        run: node -e "JSON.parse(require('fs').readFileSync('app.json','utf8')); JSON.parse(require('fs').readFileSync('eas.json','utf8')); console.log('app.json and eas.json are valid JSON')"
+
+      - name: Parse every JS/JSX file
+        run: |
+          npx --yes esbuild@0.23.0 $(ls App.js index.js *.js services/*.js screens/*.js) \
+            --loader:.js=jsx --format=esm --outdir=/tmp/bundle-check > /dev/null
+          echo "All screens, contexts and services parse."
+
+      - name: No provider secrets in the mobile bundle
+        run: |
+          if grep -rnE "FLWSECK|FLWPUBK|FLW_SECRET|RIA_API_SECRET|PII_ENCRYPTION_KEY" \
+              App.js index.js *.js services/*.js screens/*.js; then
+            echo "::error::A server-side secret name appears in the mobile app. Keys must only exist in backend/.env."
+            exit 1
+          fi
+          echo "No server-side secret names reach the app bundle."
+
+      - name: Resolve relative imports
+        run: |
+          node -e "
+          const fs=require('fs'),path=require('path');
+          const files=[];
+          (function walk(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){
+            if(['node_modules','.git','backend','admin-dashboard','supabase'].includes(e.name))continue;
+            const p=path.join(dir,e.name);
+            if(e.isDirectory())walk(p); else if(e.name.endsWith('.js'))files.push(p);}})('.');
+          const bad=[];
+          for(const f of files){const src=fs.readFileSync(f,'utf8');
+            for(const m of src.matchAll(/(?:from|require\()\s*['\"](\.[^'\"]+)['\"]/g)){
+              const t=path.normalize(path.join(path.dirname(f),m[1]));
+              if(![t,t+'.js',t+'.json',path.join(t,'index.js')].some(p=>fs.existsSync(p)))bad.push(f+' -> '+m[1]);}}
+          if(bad.length){console.error('Broken imports:\n'+bad.join('\n'));process.exit(1);}
+          console.log('All relative imports resolve.');"

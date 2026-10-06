@@ -1,0 +1,116 @@
+name: EAS Build (iOS + Android)
+
+# Produces the installable/downloadable artifacts for every profile:
+#
+#   preview     → Android APK (installable link) + iOS internal distribution
+#   simulator   → iOS Simulator build (.app / .tar.gz) for local testing
+#   production  → Android App Bundle (Play) + iOS archive (App Store)
+#
+# Trigger it from the Actions tab (workflow_dispatch) or by pushing a tag:
+#   git tag v1.0.0 && git push origin v1.0.0
+#
+# Required repository secrets:
+#   EXPO_TOKEN                 https://expo.dev/settings/access-tokens
+#   EXPO_PUBLIC_API_URL        e.g. https://afrisend-api.onrender.com/api/v1
+# Optional (only to auto-submit to the stores):
+#   GOOGLE_SERVICE_ACCOUNT_JSON, EXPO_APPLE_APP_SPECIFIC_PASSWORD
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: EAS profile to build
+        required: true
+        default: preview
+        type: choice
+        options: [preview, simulator, production, development]
+      platform:
+        description: Platform
+        required: true
+        default: all
+        type: choice
+        options: [all, android, ios]
+      submit:
+        description: Submit to the stores after a production build
+        required: false
+        default: false
+        type: boolean
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    name: EAS build
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+
+      - name: Verify the API URL is a real deployment
+        env:
+          API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
+        run: |
+          if [ -z "$API_URL" ]; then
+            echo "::error::Set the EXPO_PUBLIC_API_URL repository secret (e.g. https://afrisend-api.onrender.com/api/v1)"
+            exit 1
+          fi
+          echo "Building against $API_URL"
+          curl -fsS "${API_URL%/}/public/healthz" && echo "API reachable"
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build
+        id: build
+        env:
+          EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
+          PROFILE: ${{ github.event.inputs.profile || 'production' }}
+          PLATFORM: ${{ github.event.inputs.platform || 'all' }}
+        run: |
+          eas build --non-interactive --no-wait --json \
+            --profile "$PROFILE" --platform "$PLATFORM" > build.json
+          cat build.json
+          {
+            echo "### EAS build started ($PROFILE / $PLATFORM)"
+            echo ""
+            echo "| Platform | Build page | Artifact |"
+            echo "| --- | --- | --- |"
+            node -e "
+              const builds = require('./build.json');
+              for (const b of builds) {
+                console.log('| ' + b.platform + ' | ' + b.buildDetailsPageUrl + ' | ' + (b.artifacts?.buildUrl || 'pending') + ' |');
+              }
+            "
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Wait for the artifacts and print the download links
+        env:
+          EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
+        run: |
+          node -e "
+            const { execSync } = require('child_process');
+            const builds = require('./build.json');
+            for (const b of builds) {
+              console.log('Waiting for ' + b.platform + ' (' + b.id + ')...');
+              execSync('eas build:view ' + b.id + ' --json > view.json', { stdio: 'inherit' });
+              const view = require('./view.json');
+              const url = view.artifacts && (view.artifacts.buildUrl || view.artifacts.applicationArchiveUrl);
+              console.log(b.platform + ' → ' + (url || view.buildDetailsPageUrl));
+            }
+          " >> "$GITHUB_STEP_SUMMARY" 2>&1 || echo "Poll the build pages linked above for artifacts."
+
+      - name: Submit to the stores (production only)
+        if: ${{ github.event.inputs.submit == 'true' }}
+        env:
+          EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
+        run: eas submit --non-interactive --profile production --platform all --latest
